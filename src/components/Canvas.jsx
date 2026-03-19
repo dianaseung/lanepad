@@ -1,9 +1,10 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { usePage } from '../hooks/usePage.js'
 import { useVim } from '../hooks/useVim.js'
-import CodeEditor from './CodeEditor.jsx'
+import { useAutosave } from '../hooks/useAutosave.js'
 import Lane from './Lane.jsx'
 import FindBar from './FindBar.jsx'
+import CodeEditor from './CodeEditor.jsx'
 import {
     DndContext,
     closestCenter,
@@ -44,8 +45,11 @@ export default function Canvas({ folder, fileName, onSaveReady, onRefresh, onFil
     )
 }
 
+// Save status: 'saved' | 'unsaved' | 'saving'
 function CanvasInner({ folder, fileName, initialData, onSaveReady, onRefresh, onFileRenamed }) {
-    const [dirty, setDirty] = useState(false)
+    const [saveStatus, setSaveStatus] = useState('saved')
+    const [lastSavedTime, setLastSavedTime] = useState(null)
+    const savedFadeTimer = useRef(null)
     const [activeCard, setActiveCard] = useState(null)
     const [focusMode, setFocusMode] = useState(false)
     const [focusedCardData, setFocusedCardData] = useState(null)
@@ -108,63 +112,51 @@ function CanvasInner({ folder, fileName, initialData, onSaveReady, onRefresh, on
         setFindMatchIndex(0)
     }, [findQuery])
 
-    // ── Vim hook ─────────────────────────────────────────────────
-    const {
-        cursor,
-        setCursor,
-        getFocusedCard,
-        getFocusedLane,
-    } = useVim({
-        page,
-        addLane: () => addLane(),
-        addCard: (laneIndex, insertIndex, template) => {
-            const lane = page.lanes[laneIndex]
-            if (lane) addCard(lane.id, 'code', insertIndex, template)
-        },
-        deleteCard: (laneIndex, cardId) => {
-            const lane = page.lanes[laneIndex]
-            if (lane) deleteCard(lane.id, cardId)
-        },
-        deleteLane: (laneId) => deleteLane(laneId),
-        reorderCards: (laneId, newCards) => reorderCards(laneId, newCards),
-        updateLane: (laneId, changes) => updateLane(laneId, changes),
-        updateCard: (laneId, cardId, changes) => updateCard(laneId, cardId, changes),
-        onSave: () => save(),
-        onNewPage: () => {},
-        onOpenFind: openFind,
-        onToggleFocusMode: (val) => {
-            setFocusMode(val)
-            if (val) {
-                const card = getFocusedCard()
-                const lane = getFocusedLane()
-                setFocusedCardData(card)
-                setFocusedLaneData(lane)
-                setFocusModeLaneId(lane?.id ?? null)
-                setFocusModeCardId(card?.id ?? null)
-            }
-        },
+    // ── Save ─────────────────────────────────────────────────────
+    const save = useCallback(async () => {
+        setSaveStatus('saving')
+        await window.lanepad.writePage(folder, fileName, page)
+        const now = new Date()
+        const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        setLastSavedTime(timeStr)
+        setSaveStatus('saved')
+        if (onRefresh) onRefresh()
+
+        // Fade out "Saved" after 3 seconds
+        clearTimeout(savedFadeTimer.current)
+        savedFadeTimer.current = setTimeout(() => {
+            setLastSavedTime(null)
+        }, 3000)
+    }, [folder, fileName, page, onRefresh])
+
+    // ── Autosave ─────────────────────────────────────────────────
+    const { scheduleAutosave, flushAutosave } = useAutosave({
+        data: page,
+        onSave: save,
+        debounceMs: 2000,
     })
 
-    // ── Dirty tracking ───────────────────────────────────────────
+    // Track first render to avoid autosaving on mount
     const isFirstRender = useRef(true)
     useEffect(() => {
         if (isFirstRender.current) {
             isFirstRender.current = false
             return
         }
-        setDirty(true)
+        setSaveStatus('unsaved')
+        scheduleAutosave()
     }, [page])
 
-    // ── Save ─────────────────────────────────────────────────────
-    async function save() {
-        await window.lanepad.writePage(folder, fileName, page)
-        setDirty(false)
-        if (onRefresh) onRefresh()
-    }
+    // Flush save when switching pages (unmount)
+    useEffect(() => {
+        return () => {
+            flushAutosave()
+        }
+    }, [])
 
     useEffect(() => {
         if (onSaveReady) onSaveReady(save)
-    }, [page])
+    }, [save])
 
     // ── Card export helpers ───────────────────────────────────────
     function exportCardJson(card) {
@@ -204,7 +196,7 @@ function CanvasInner({ folder, fileName, initialData, onSaveReady, onRefresh, on
         URL.revokeObjectURL(url)
     }
 
-    function importCardsJson(laneId) {
+    async function importCardsJson(laneId) {
         const input = document.createElement('input')
         input.type = 'file'
         input.accept = '.json'
@@ -215,14 +207,11 @@ function CanvasInner({ folder, fileName, initialData, onSaveReady, onRefresh, on
             try {
                 const data = JSON.parse(text)
                 const { nanoid } = await import('nanoid')
-                // Single card or lane export
                 if (data.cards) {
-                    // Lane export — import all cards
                     for (const card of data.cards) {
                         addCard(laneId, null, { ...card, id: nanoid() })
                     }
                 } else if (data.title) {
-                    // Single card export
                     addCard(laneId, null, { ...data, id: nanoid() })
                 }
             } catch {
@@ -231,6 +220,43 @@ function CanvasInner({ folder, fileName, initialData, onSaveReady, onRefresh, on
         }
         input.click()
     }
+
+    // ── Vim hook ─────────────────────────────────────────────────
+    const {
+        cursor,
+        setCursor,
+        getFocusedCard,
+        getFocusedLane,
+    } = useVim({
+        page,
+        addLane: () => addLane(),
+        addCard: (laneIndex, insertIndex, template) => {
+            const lane = page.lanes[laneIndex]
+            if (lane) addCard(lane.id, 'code', insertIndex, template)
+        },
+        deleteCard: (laneIndex, cardId) => {
+            const lane = page.lanes[laneIndex]
+            if (lane) deleteCard(lane.id, cardId)
+        },
+        deleteLane: (laneId) => deleteLane(laneId),
+        reorderCards: (laneId, newCards) => reorderCards(laneId, newCards),
+        updateLane: (laneId, changes) => updateLane(laneId, changes),
+        updateCard: (laneId, cardId, changes) => updateCard(laneId, cardId, changes),
+        onSave: () => save(),
+        onNewPage: () => {},
+        onOpenFind: openFind,
+        onToggleFocusMode: (val) => {
+            setFocusMode(val)
+            if (val) {
+                const card = getFocusedCard()
+                const lane = getFocusedLane()
+                setFocusedCardData(card)
+                setFocusedLaneData(lane)
+                setFocusModeLaneId(lane?.id ?? null)
+                setFocusModeCardId(card?.id ?? null)
+            }
+        },
+    })
 
     // ── Drag and drop ────────────────────────────────────────────
     const sensors = useSensors(
@@ -300,7 +326,6 @@ function CanvasInner({ folder, fileName, initialData, onSaveReady, onRefresh, on
 
     const laneIds = page.lanes.map(l => l.id)
     const focusedCard = getFocusedCard()
-    const focusedLane = getFocusedLane()
 
     // ── Focus mode render ────────────────────────────────────────
     if (focusMode && focusModeCardId) {
@@ -360,6 +385,20 @@ function CanvasInner({ folder, fileName, initialData, onSaveReady, onRefresh, on
         )
     }
 
+    // ── Save status indicator ────────────────────────────────────
+    function renderSaveStatus() {
+        if (saveStatus === 'saving') {
+            return <span className="save-status saving">⏳ Saving...</span>
+        }
+        if (saveStatus === 'unsaved') {
+            return <span className="save-status unsaved">⚠️ Unsaved changes</span>
+        }
+        if (lastSavedTime) {
+            return <span className="save-status saved">✅ Saved {lastSavedTime}</span>
+        }
+        return null
+    }
+
     return (
         <div className={`canvas-root direction-${page.direction}`}>
             <div className="canvas-toolbar">
@@ -369,6 +408,7 @@ function CanvasInner({ folder, fileName, initialData, onSaveReady, onRefresh, on
                     onChange={e => setTitle(e.target.value)}
                     placeholder="Page title"
                 />
+                {renderSaveStatus()}
                 <div className="direction-toggle">
                     <button
                         className={page.direction === 'horizontal' ? 'active' : ''}
@@ -381,7 +421,7 @@ function CanvasInner({ folder, fileName, initialData, onSaveReady, onRefresh, on
                         title="Vertical lanes (columns)"
                     >⇅ Columns</button>
                 </div>
-                {dirty && <span className="dirty-indicator">Unsaved changes</span>}
+                
             </div>
 
             {findOpen && (
