@@ -1,4 +1,4 @@
-import electron, { BrowserWindow, app, dialog, ipcMain } from "electron";
+import electron, { BrowserWindow, Menu, app, dialog, ipcMain } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import fs from "node:fs";
@@ -14379,7 +14379,10 @@ function createWindow() {
 	if (process.env.VITE_DEV_SERVER_URL) win.loadURL(process.env.VITE_DEV_SERVER_URL);
 	else win.loadFile(path.join(__dirname, "../dist/index.html"));
 }
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+	Menu.setApplicationMenu(null);
+	createWindow();
+});
 app.on("window-all-closed", () => {
 	if (process.platform !== "darwin") app.quit();
 });

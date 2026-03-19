@@ -13,11 +13,6 @@ export default function Topbar({ activePage, pages, onSave, onExport }) {
           disabled={!activePage}
           onClick={onSave}
         >Save</button>
-        <button
-          className="btn-topbar"
-          disabled={!activePage}
-          onClick={onExport}
-        >Export</button>
       </div>
     </div>
   )
