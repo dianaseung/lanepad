@@ -1,0 +1,103 @@
+import { app, BrowserWindow, ipcMain, dialog } from 'electron'
+import { fileURLToPath } from 'node:url'
+import path from 'node:path'
+import fs from 'node:fs'
+import Store from 'electron-store'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const store = new Store()
+
+let win
+
+function createWindow() {
+  win = new BrowserWindow({
+    width: 1400,
+    height: 900,
+    titleBarStyle: 'hiddenInset', // clean macOS look
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.cjs'),
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  })
+
+  if (process.env.VITE_DEV_SERVER_URL) {
+    win.loadURL(process.env.VITE_DEV_SERVER_URL)
+  } else {
+    win.loadFile(path.join(__dirname, '../dist/index.html'))
+  }
+}
+
+app.whenReady().then(createWindow)
+
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') app.quit()
+})
+
+// ── Folder handling ──────────────────────────────────────────────
+
+ipcMain.handle('get-last-folder', () => {
+  return store.get('lastFolder', null)
+})
+
+ipcMain.handle('open-folder-dialog', async () => {
+  const result = await dialog.showOpenDialog(win, {
+    properties: ['openDirectory'],
+  })
+  if (result.canceled) return null
+  const folderPath = result.filePaths[0]
+  store.set('lastFolder', folderPath)
+  return folderPath
+})
+
+ipcMain.handle('set-last-folder', (_, folderPath) => {
+  store.set('lastFolder', folderPath)
+})
+
+// ── File system ──────────────────────────────────────────────────
+
+ipcMain.handle('list-pages', (_, folderPath) => {
+  try {
+    const files = fs.readdirSync(folderPath)
+    return files.filter(f => f.endsWith('.lanepad'))
+  } catch {
+    return []
+  }
+})
+
+ipcMain.handle('read-page', (_, folderPath, fileName) => {
+  const filePath = path.join(folderPath, fileName)
+  try {
+    const raw = fs.readFileSync(filePath, 'utf-8')
+    return JSON.parse(raw)
+  } catch {
+    return null
+  }
+})
+
+ipcMain.handle('write-page', (_, folderPath, fileName, data) => {
+  const filePath = path.join(folderPath, fileName)
+  fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8')
+  return true
+})
+
+ipcMain.handle('delete-page', (_, folderPath, fileName) => {
+  const filePath = path.join(folderPath, fileName)
+  try {
+    fs.unlinkSync(filePath)
+    return true
+  } catch {
+    return false
+  }
+})
+
+ipcMain.handle('rename-page', (_, folderPath, oldName, newName) => {
+  const oldPath = path.join(folderPath, oldName)
+  const newPath = path.join(folderPath, newName)
+  try {
+    fs.renameSync(oldPath, newPath)
+    return true
+  } catch {
+    return false
+  }
+})

@@ -1,0 +1,197 @@
+.lane {
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.lane.direction-horizontal {
+  width: 100%;
+}
+
+.lane.direction-vertical {
+  width: 300px;
+  min-width: 300px;
+}
+
+.lane-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #1e1e1e;
+  border-bottom: 1px solid #2a2a2a;
+  user-select: none;
+}
+
+.lane.collapsed .lane-header {
+  border-bottom: none;
+}
+
+.lane-collapse-btn {
+  background: none;
+  border: none;
+  color: #555;
+  cursor: pointer;
+  font-size: 10px;
+  padding: 0;
+  width: 16px;
+}
+
+.lane-collapse-btn:hover {
+  color: #aaa;
+}
+
+.lane-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #ccc;
+  flex: 1;
+  cursor: default;
+}
+
+.lane-name-input {
+  flex: 1;
+  background: #2a2a2a;
+  border: 1px solid #4a9eff;
+  border-radius: 3px;
+  color: #e0e0e0;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 1px 6px;
+  outline: none;
+}
+
+.lane-actions {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.lane-action-btn {
+  background: none;
+  border: 1px solid #333;
+  border-radius: 4px;
+  color: #666;
+  font-size: 11px;
+  padding: 3px 8px;
+  cursor: pointer;
+}
+
+.lane-action-btn:hover {
+  color: #ccc;
+  border-color: #555;
+}
+
+.lane-action-btn.danger:hover {
+  color: #e05555;
+  border-color: #e05555;
+}
+
+.lane-cards {
+  padding: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.lane.direction-vertical .lane-cards {
+  flex-direction: column;
+  flex-wrap: nowrap;
+}
+
+.lane-empty {
+  font-size: 12px;
+  color: #444;
+  padding: 8px 4px;
+}
+
+/* Stub card — replaced fully in Chunk 4 */
+.card-stub {
+  background: #242424;
+  border: 1px solid #333;
+  border-radius: 6px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 200px;
+}
+
+.card-stub-title {
+  font-size: 13px;
+  color: #ccc;
+}
+
+.card-stub-delete {
+  background: none;
+  border: none;
+  color: #555;
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.card-stub-delete:hover {
+  color: #e05555;
+}
+
+.add-card-wrap {
+  position: relative;
+}
+
+.add-card-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  background: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 6px;
+  padding: 4px;
+  z-index: 100;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  display: flex;
+  flex-direction: column;
+  min-width: 100px;
+}
+
+.add-card-dropdown button {
+  background: none;
+  border: none;
+  color: #ccc;
+  font-size: 13px;
+  padding: 6px 10px;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.add-card-dropdown button:hover {
+  background: #2a2a2a;
+  color: #e0e0e0;
+}
+
+.lane-drag-handle {
+  background: none;
+  border: none;
+  color: #444;
+  cursor: grab;
+  font-size: 14px;
+  padding: 0 2px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.lane-drag-handle:hover {
+  color: #888;
+}
+
+.lane-drag-handle:active {
+  cursor: grabbing;
+}
+
+.lane-cards.drop-over {
+  background: #1e2a1e;
+  border-radius: 6px;
+  outline: 1px dashed #3a5a3a;
+}

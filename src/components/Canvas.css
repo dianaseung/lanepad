@@ -1,0 +1,121 @@
+.canvas-root {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.canvas-loading {
+  color: #555;
+  padding: 40px;
+  font-size: 14px;
+}
+
+.canvas-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 20px;
+  border-bottom: 1px solid #222;
+  flex-shrink: 0;
+}
+
+.direction-toggle {
+  display: flex;
+  gap: 2px;
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 6px;
+  padding: 2px;
+}
+
+.direction-toggle button {
+  background: none;
+  border: none;
+  border-radius: 4px;
+  color: #666;
+  font-size: 12px;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+.direction-toggle button.active {
+  background: #2a2a2a;
+  color: #e0e0e0;
+}
+
+.direction-toggle button:hover:not(.active) {
+  color: #aaa;
+}
+
+.dirty-indicator {
+  font-size: 11px;
+  color: #666;
+  font-style: italic;
+}
+
+.lanes-container {
+  flex: 1;
+  overflow: auto;
+  padding: 20px;
+  display: flex;
+  gap: 16px;
+}
+
+.canvas-root.direction-horizontal .lanes-container {
+  flex-direction: column;
+}
+
+.canvas-root.direction-vertical .lanes-container {
+  flex-direction: row;
+  align-items: flex-start;
+}
+
+.add-lane-btn {
+  background: none;
+  border: 1px dashed #2a2a2a;
+  border-radius: 8px;
+  color: #444;
+  font-size: 13px;
+  padding: 10px 20px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+
+.canvas-root.direction-horizontal .add-lane-btn {
+  width: 100%;
+  padding: 12px;
+}
+
+.canvas-root.direction-vertical .add-lane-btn {
+  height: fit-content;
+  white-space: nowrap;
+  align-self: flex-start;
+  padding: 12px 16px;
+}
+
+.add-lane-btn:hover {
+  border-color: #444;
+  color: #888;
+}
+
+.page-title-input {
+  background: none;
+  border: none;
+  border-bottom: 1px solid transparent;
+  color: #e0e0e0;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 2px 4px;
+  outline: none;
+  width: 200px;
+}
+
+.page-title-input:hover {
+  border-bottom-color: #333;
+}
+
+.page-title-input:focus {
+  border-bottom-color: #4a9eff;
+}

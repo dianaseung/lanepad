@@ -1,0 +1,59 @@
+.topbar {
+  height: 44px;
+  min-height: 44px;
+  background: #161616;
+  border-bottom: 1px solid #2a2a2a;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  -webkit-app-region: drag; /* makes it draggable as a title bar on macOS */
+}
+
+.topbar-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: #888;
+  -webkit-app-region: no-drag;
+}
+
+.topbar-actions {
+  display: flex;
+  gap: 8px;
+  -webkit-app-region: no-drag;
+}
+
+.btn-topbar {
+  background: #2a2a2a;
+  border: 1px solid #383838;
+  border-radius: 5px;
+  color: #ccc;
+  font-size: 12px;
+  padding: 4px 12px;
+  cursor: pointer;
+}
+
+.btn-topbar:hover:not(:disabled) {
+  background: #333;
+  color: #e0e0e0;
+}
+
+.btn-topbar:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+/* Shared button style for Welcome screen */
+.btn-primary {
+  background: #1e3a5f;
+  border: 1px solid #2a5298;
+  border-radius: 6px;
+  color: #e0e0e0;
+  font-size: 14px;
+  padding: 8px 20px;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background: #254a78;
+}
