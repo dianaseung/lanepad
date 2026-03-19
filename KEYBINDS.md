@@ -6,6 +6,9 @@
 |-----|--------|
 | `Cmd+S` | Save current page |
 | `Cmd+N` | New page (auto-focuses title) |
+| `Cmd+P` | Quick Switch |
+| `Cmd+B` | Expand/Collapse Explorer |
+| `Cmd+F` | Find Card |
 | `Escape` | Exit insert mode (return to normal mode) |
 | `Escape` (in normal mode) | Clear all focus |
 
