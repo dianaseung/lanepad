@@ -21,6 +21,7 @@ export function useVim({
     const deleteTimer = useRef(null)
     const laneDeleteTimer = useRef(null)
     const laneDeleteBlockedTimer = useRef(null)
+    const wasInNormalMode = useRef(false)
 
     const isInsertMode = useCallback(() => {
         const active = document.activeElement
@@ -73,8 +74,23 @@ export function useVim({
             }
 
             if (e.key === 'Escape') {
-                document.activeElement?.blur()
+                if (!isInsertMode()) {
+                    // Already in normal mode — second Escape, clear cursor
+                    setCursor({ laneIndex: null, cardIndex: null })
+                    wasInNormalMode.current = false
+                } else {
+                    // First Escape — exit insert mode
+                    document.activeElement?.blur()
+                }
                 return
+            }
+
+            // If cursor is fully cleared, any nav key re-enters at lane 0
+            if (cursor.laneIndex === null && !isInsertMode()) {
+                if (['h','j','k','l','g','G','n','N','x','y','p',' '].includes(e.key)) {
+                    setCursor({ laneIndex: 0, cardIndex: null })
+                    return
+                }
             }
 
             if (isInsertMode()) return

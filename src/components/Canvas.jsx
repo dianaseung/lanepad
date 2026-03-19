@@ -341,7 +341,7 @@ function CanvasInner({ folder, fileName, initialData, onSaveReady, onExportReady
                                 lane={lane}
                                 direction={page.direction}
                                 focusedCardId={cursor.laneIndex === laneIndex ? focusedCard?.id : null}
-                                isLaneFocused={cursor.laneIndex === laneIndex}
+                                isLaneFocused={cursor.laneIndex !== null && cursor.laneIndex === laneIndex}
                                 onUpdateLane={(changes) => updateLane(lane.id, changes)}
                                 onDeleteLane={() => deleteLane(lane.id)}
                                 onAddCard={(type) => addCard(lane.id, type)}
