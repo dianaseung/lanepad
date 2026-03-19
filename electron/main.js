@@ -51,6 +51,10 @@ ipcMain.handle('get-last-folder', () => {
     return store.get('lastFolder', null)
 })
 
+ipcMain.handle('get-recent-folders', () => {
+    return store.get('recentFolders', [])
+})
+
 ipcMain.handle('open-folder-dialog', async () => {
     const result = await dialog.showOpenDialog(win, {
         properties: ['openDirectory'],
@@ -58,11 +62,22 @@ ipcMain.handle('open-folder-dialog', async () => {
     if (result.canceled) return null
     const folderPath = result.filePaths[0]
     store.set('lastFolder', folderPath)
+
+    // Update recent folders — keep last 3, no duplicates
+    const recent = store.get('recentFolders', [])
+    const updated = [folderPath, ...recent.filter(f => f !== folderPath)].slice(0, 3)
+    store.set('recentFolders', updated)
+
     return folderPath
 })
 
 ipcMain.handle('set-last-folder', (_, folderPath) => {
     store.set('lastFolder', folderPath)
+
+    // Update recent folders
+    const recent = store.get('recentFolders', [])
+    const updated = [folderPath, ...recent.filter(f => f !== folderPath)].slice(0, 3)
+    store.set('recentFolders', updated)
 })
 
 // ── File system ──────────────────────────────────────────────────
