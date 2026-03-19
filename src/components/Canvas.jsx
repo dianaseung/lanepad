@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { usePage } from '../hooks/usePage.js'
 import { useVim } from '../hooks/useVim.js'
-import { nanoid } from 'nanoid'
 import Lane from './Lane.jsx'
+import FindBar from './FindBar.jsx'
 import {
     DndContext,
     closestCenter,
@@ -20,7 +20,7 @@ import {
 import CardDragOverlay from './CardDragOverlay.jsx'
 import './Canvas.css'
 
-export default function Canvas({ folder, fileName, onSaveReady, onExportReady, onRefresh }) {
+export default function Canvas({ folder, fileName, onSaveReady, onExportReady, onRefresh, onFileRenamed }) {
     const [initialData, setInitialData] = useState(null)
 
     useEffect(() => {
@@ -39,14 +39,19 @@ export default function Canvas({ folder, fileName, onSaveReady, onExportReady, o
             onSaveReady={onSaveReady}
             onExportReady={onExportReady}
             onRefresh={onRefresh}
+            onFileRenamed={onFileRenamed}
         />
     )
 }
 
-function CanvasInner({ folder, fileName, initialData, onSaveReady, onExportReady, onRefresh }) {
+function CanvasInner({ folder, fileName, initialData, onSaveReady, onExportReady, onRefresh, onFileRenamed }) {
     const [dirty, setDirty] = useState(false)
     const [activeCard, setActiveCard] = useState(null)
-    const titleInputRef = useRef(null)
+
+    // ── Find state ───────────────────────────────────────────────
+    const [findOpen, setFindOpen] = useState(false)
+    const [findQuery, setFindQuery] = useState('')
+    const [findMatchIndex, setFindMatchIndex] = useState(0)
 
     const {
         page, setDirection, setTitle,
@@ -54,8 +59,52 @@ function CanvasInner({ folder, fileName, initialData, onSaveReady, onExportReady
         addCard, updateCard, deleteCard, reorderCards, moveCard,
     } = usePage(initialData)
 
-    // ── Vim hook ─────────────────────────────────────────────────
+    // ── Compute find matches ─────────────────────────────────────
+    const findMatches = []
+    if (findQuery.trim()) {
+        const q = findQuery.toLowerCase()
+        for (const lane of page.lanes) {
+            for (const card of lane.cards) {
+                if (
+                    card.title.toLowerCase().includes(q) ||
+                    card.content?.toLowerCase().includes(q)
+                ) {
+                    findMatches.push(card.id)
+                }
+            }
+        }
+    }
 
+    const currentMatchCardId = findMatches[findMatchIndex] ?? null
+
+    function openFind() {
+        setFindOpen(true)
+        setFindQuery('')
+        setFindMatchIndex(0)
+    }
+
+    function closeFind() {
+        setFindOpen(false)
+        setFindQuery('')
+        setFindMatchIndex(0)
+    }
+
+    function findNext() {
+        if (findMatches.length === 0) return
+        setFindMatchIndex(i => (i + 1) % findMatches.length)
+    }
+
+    function findPrev() {
+        if (findMatches.length === 0) return
+        setFindMatchIndex(i => (i - 1 + findMatches.length) % findMatches.length)
+    }
+
+    // Reset match index when query changes
+    useEffect(() => {
+        setFindMatchIndex(0)
+    }, [findQuery])
+
+    // ── Vim hook ─────────────────────────────────────────────────
     const {
         cursor,
         setCursor,
@@ -75,76 +124,13 @@ function CanvasInner({ folder, fileName, initialData, onSaveReady, onExportReady
         deleteLane: (laneId) => deleteLane(laneId),
         reorderCards: (laneId, newCards) => reorderCards(laneId, newCards),
         updateLane: (laneId, changes) => updateLane(laneId, changes),
+        updateCard: (laneId, cardId, changes) => updateCard(laneId, cardId, changes),
         onSave: () => save(),
-        onNewPage: () => onNewPage?.(),
+        onNewPage: () => {},
+        onOpenFind: openFind,
     })
 
-    // ── Paste card ───────────────────────────────────────────────
-
-    // We need to handle paste here since it needs addCard/updateCard
-    useEffect(() => {
-        function handlePaste(e) {
-            if (document.activeElement?.tagName.toLowerCase() === 'input') return
-            if (document.activeElement?.tagName.toLowerCase() === 'textarea') return
-            if (document.activeElement?.closest('.cm-editor')) return
-        }
-    }, [])
-
-    // ── Space to toggle collapse on focused card ─────────────────
-
-    useEffect(() => {
-        function handleSpace(e) {
-            if (e.key !== ' ') return
-            const active = document.activeElement
-            if (!active) return
-            const tag = active.tagName.toLowerCase()
-            if (tag === 'input' || tag === 'textarea' || active.closest('.cm-editor')) return
-            if (active.tagName.toLowerCase() === 'button') return
-
-            e.preventDefault()
-            const focusedCard = getFocusedCard()
-            if (!focusedCard) return
-            const lane = page.lanes[cursor.laneIndex]
-            if (!lane) return
-            updateCard(lane.id, focusedCard.id, { collapsed: !focusedCard.collapsed })
-        }
-        window.addEventListener('keydown', handleSpace)
-        return () => window.removeEventListener('keydown', handleSpace)
-    }, [page, cursor, getFocusedCard])
-
-    // ── Enter / Shift+Enter to enter insert mode ─────────────────
-
-    useEffect(() => {
-        function handleEnter(e) {
-            if (e.key !== 'Enter') return
-            const active = document.activeElement
-            const tag = active?.tagName.toLowerCase()
-            if (tag === 'input' || tag === 'textarea' || active?.closest('.cm-editor')) return
-
-            e.preventDefault()
-            const focusedCard = getFocusedCard()
-            if (!focusedCard) return
-
-            if (e.shiftKey) {
-                // Focus card title input
-                const cardEl = document.querySelector(`[data-card-id="${focusedCard.id}"]`)
-                const titleEl = cardEl?.querySelector('.card-title')
-                if (titleEl) titleEl.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }))
-            } else {
-                // Focus code editor or note textarea
-                const cardEl = document.querySelector(`[data-card-id="${focusedCard.id}"]`)
-                const cmEl = cardEl?.querySelector('.cm-content')
-                const textareaEl = cardEl?.querySelector('.card-note-editor')
-                if (cmEl) cmEl.focus()
-                else if (textareaEl) textareaEl.focus()
-            }
-        }
-        window.addEventListener('keydown', handleEnter)
-        return () => window.removeEventListener('keydown', handleEnter)
-    }, [page, cursor, getFocusedCard])
-
     // ── Dirty tracking ───────────────────────────────────────────
-
     const isFirstRender = useRef(true)
     useEffect(() => {
         if (isFirstRender.current) {
@@ -155,7 +141,6 @@ function CanvasInner({ folder, fileName, initialData, onSaveReady, onExportReady
     }, [page])
 
     // ── Save / export ────────────────────────────────────────────
-
     async function save() {
         await window.lanepad.writePage(folder, fileName, page)
         setDirty(false)
@@ -199,7 +184,6 @@ function CanvasInner({ folder, fileName, initialData, onSaveReady, onExportReady
     }, [page])
 
     // ── Drag and drop ────────────────────────────────────────────
-
     const sensors = useSensors(
         useSensor(PointerSensor, {
             activationConstraint: { distance: 6 },
@@ -222,22 +206,17 @@ function CanvasInner({ folder, fileName, initialData, onSaveReady, onExportReady
     function handleDragOver(event) {
         const { active, over } = event
         if (!over || active.id === over.id) return
-
         const activeLane = findLaneByCardId(active.id)
         if (!activeLane) return
-
         const overCardLane = findLaneByCardId(over.id)
         const overLaneBody = over.id.toString().startsWith('lane-body-')
             ? page.lanes.find(l => l.id === over.id.toString().replace('lane-body-', ''))
             : null
-
         const overLane = overCardLane ?? overLaneBody
         if (!overLane || activeLane.id === overLane.id) return
-
         const toIndex = overCardLane
             ? overLane.cards.findIndex(c => c.id === over.id)
             : overLane.cards.length
-
         moveCard(
             active.id,
             activeLane.id,
@@ -250,9 +229,7 @@ function CanvasInner({ folder, fileName, initialData, onSaveReady, onExportReady
         const { active, over } = event
         setActiveCard(null)
         if (!over || active.id === over.id) return
-
         const isLaneDrag = page.lanes.some(l => l.id === active.id)
-
         if (isLaneDrag) {
             const oldIndex = page.lanes.findIndex(l => l.id === active.id)
             const newIndex = page.lanes.findIndex(l => l.id === over.id)
@@ -261,10 +238,8 @@ function CanvasInner({ folder, fileName, initialData, onSaveReady, onExportReady
             }
             return
         }
-
         const activeLane = findLaneByCardId(active.id)
         const overLane = findLaneByCardId(over.id)
-
         if (activeLane && overLane && activeLane.id === overLane.id) {
             const oldIndex = activeLane.cards.findIndex(c => c.id === active.id)
             const newIndex = activeLane.cards.findIndex(c => c.id === over.id)
@@ -278,21 +253,15 @@ function CanvasInner({ folder, fileName, initialData, onSaveReady, onExportReady
     const focusedCard = getFocusedCard()
 
     return (
-        <div
-            className={`canvas-root direction-${page.direction}`}
-            onClick={(e) => {
-                if (e.target === e.currentTarget) document.activeElement?.blur()
-            }}
-        >
+        <div className={`canvas-root direction-${page.direction}`}>
             <div className="canvas-toolbar">
                 <input
-                    ref={titleInputRef}
                     className="page-title-input"
                     value={page.title}
                     onChange={e => setTitle(e.target.value)}
                     placeholder="Page title"
                 />
-                {dirty && <span className="dirty-indicator">⚠️ Unsaved changes</span>}
+                {dirty && <span className="dirty-indicator">Unsaved changes</span>}
                 <div className="direction-toggle">
                     <button
                         className={page.direction === 'horizontal' ? 'active' : ''}
@@ -306,6 +275,18 @@ function CanvasInner({ folder, fileName, initialData, onSaveReady, onExportReady
                     >⇅ Columns</button>
                 </div>
             </div>
+
+            {findOpen && (
+                <FindBar
+                    query={findQuery}
+                    matches={findMatches.length}
+                    currentMatch={findMatchIndex}
+                    onQueryChange={setFindQuery}
+                    onNext={findNext}
+                    onPrev={findPrev}
+                    onClose={closeFind}
+                />
+            )}
 
             <DndContext
                 sensors={sensors}
@@ -330,6 +311,8 @@ function CanvasInner({ folder, fileName, initialData, onSaveReady, onExportReady
                                 direction={page.direction}
                                 focusedCardId={cursor.laneIndex === laneIndex ? focusedCard?.id : null}
                                 isLaneFocused={cursor.laneIndex !== null && cursor.laneIndex === laneIndex}
+                                findMatchCardId={currentMatchCardId}
+                                findMatchCardIds={findMatches}
                                 onUpdateLane={(changes) => updateLane(lane.id, changes)}
                                 onDeleteLane={() => deleteLane(lane.id)}
                                 onAddCard={(type) => addCard(lane.id, type)}

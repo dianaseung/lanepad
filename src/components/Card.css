@@ -304,3 +304,13 @@
     outline-offset: 1px;
     border-radius: 4px;
 }
+
+.card.find-match {
+    outline: 2px solid #ecd62e66;
+    outline-offset: 1px;
+}
+
+.card.find-current {
+    outline: 2px solid #ecd62e;
+    outline-offset: 1px;
+}

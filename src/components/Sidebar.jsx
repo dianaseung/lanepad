@@ -4,19 +4,39 @@ import './Sidebar.css'
 
 export default function Sidebar({
     folder, pages, activePage,
-    onSelectPage, onNewPage, onDeletePage, onRenamePage, onRefresh
+    onSelectPage, onNewPage, onDeletePage, onRenamePage,
+    collapsed, onToggleCollapse,
 }) {
     const folderName = folder.split('/').pop()
+
+    if (collapsed) {
+        return (
+            <div className="sidebar sidebar-collapsed" onClick={onToggleCollapse} title="Expand sidebar (⌘B)">
+                <div className="sidebar-collapsed-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM6 20V4h5v7h7v9H6z"/>
+                    </svg>
+                </div>
+            </div>
+        )
+    }
 
     return (
         <div className="sidebar">
             <div className="sidebar-header">
                 <span className="sidebar-folder-name">{folderName}</span>
-                <button
-                    className="sidebar-new-btn"
-                    title="New page"
-                    onClick={onNewPage}
-                >+</button>
+                <div className="sidebar-header-actions">
+                    <button
+                        className="sidebar-new-btn"
+                        title="New page"
+                        onClick={onNewPage}
+                    >+</button>
+                    <button
+                        className="sidebar-collapse-btn"
+                        title="Collapse sidebar (⌘B)"
+                        onClick={onToggleCollapse}
+                    >‹</button>
+                </div>
             </div>
 
             <div className="sidebar-list">

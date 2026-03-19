@@ -1,0 +1,121 @@
+.qs-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 15vh;
+}
+
+.qs-modal {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 10px;
+    width: 520px;
+    max-width: 90vw;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
+    overflow: hidden;
+}
+
+.qs-input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    border-bottom: 1px solid #2a2a2a;
+}
+
+.qs-icon {
+    font-size: 11px;
+    color: #444;
+    flex-shrink: 0;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.qs-input {
+    flex: 1;
+    background: none;
+    border: none;
+    color: #e0e0e0;
+    font-size: 15px;
+    outline: none;
+}
+
+.qs-input::placeholder {
+    color: #444;
+}
+
+.qs-clear {
+    background: none;
+    border: none;
+    color: #444;
+    cursor: pointer;
+    font-size: 11px;
+    padding: 2px 4px;
+    border-radius: 3px;
+}
+
+.qs-clear:hover {
+    color: #aaa;
+    background: #2a2a2a;
+}
+
+.qs-results {
+    max-height: 340px;
+    overflow-y: auto;
+    padding: 6px 0;
+}
+
+.qs-empty {
+    font-size: 13px;
+    color: #444;
+    padding: 20px 16px;
+    text-align: center;
+}
+
+.qs-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 8px 16px;
+    cursor: pointer;
+}
+
+.qs-item:hover,
+.qs-item.selected {
+    background: #252525;
+}
+
+.qs-item.selected {
+    background: #1e3a5f;
+}
+
+.qs-item-title {
+    font-size: 13px;
+    color: #e0e0e0;
+    font-weight: 500;
+}
+
+.qs-item-filename {
+    font-size: 11px;
+    color: #555;
+    font-style: italic;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.qs-item.selected .qs-item-filename {
+    color: #7aabde;
+}
+
+.qs-footer {
+    display: flex;
+    gap: 16px;
+    padding: 8px 16px;
+    border-top: 1px solid #2a2a2a;
+    font-size: 11px;
+    color: #444;
+    font-family: 'JetBrains Mono', monospace;
+}

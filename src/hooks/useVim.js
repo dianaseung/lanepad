@@ -9,8 +9,10 @@ export function useVim({
     deleteLane,
     reorderCards,
     updateLane,
+    updateCard,
     onSave,
     onNewPage,
+    onOpenFind,
 }) {
     const [cursor, setCursorRaw] = useState({ laneIndex: 0, cardIndex: null })
     const [yanked, setYankedRaw] = useState(null)
@@ -117,6 +119,12 @@ export function useVim({
             if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
                 e.preventDefault()
                 onNewPage?.()
+                return
+            }
+
+            if ((e.metaKey || e.ctrlKey) && e.key === 'f') {
+                e.preventDefault()
+                onOpenFind?.()
                 return
             }
 
@@ -361,9 +369,8 @@ export function useVim({
             if (e.key === ' ') {
                 e.preventDefault()
                 const focusedCard = getFocusedCard()
-                if (focusedCard) {
-                    const lane = page.lanes[laneIndex]
-                    if (lane) updateLane && updateCard?.(lane.id, focusedCard.id, { collapsed: !focusedCard.collapsed })
+                if (focusedCard && currentLane) {
+                    updateCard(currentLane.id, focusedCard.id, { collapsed: !focusedCard.collapsed })
                 }
                 return
             }
