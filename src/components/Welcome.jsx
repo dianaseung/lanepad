@@ -2,6 +2,14 @@ import { useState, useEffect } from 'react'
 import './Welcome.css'
 
 const SHORTCUTS = [
+    { keys: ['Space'], description: 'Collapse / expand card' },
+    { keys: ['n'], description: 'New card' },
+    { keys: ['N'], description: 'New lane' },
+    { keys: ['z'], description: 'Focus mode' },
+    { keys: ['y'], description: 'Yank card' },
+    { keys: ['p'], description: 'Paste card' },
+    { keys: ['x'], description: 'Delete card (confirm)' },
+    { keys: ['⇧', 'x'], description: 'Delete lane (confirm)' },
     { keys: ['⌘', 'S'], description: 'Save page' },
     { keys: ['⌘', 'N'], description: 'New page' },
     { keys: ['⌘', 'P'], description: 'Quick switcher' },
@@ -9,14 +17,6 @@ const SHORTCUTS = [
     { keys: ['⌘', 'B'], description: 'Toggle sidebar' },
     { keys: ['j', 'k'], description: 'Navigate lanes' },
     { keys: ['h', 'l'], description: 'Navigate cards' },
-    { keys: ['z'], description: 'Focus mode' },
-    { keys: ['Space'], description: 'Collapse / expand card' },
-    { keys: ['n'], description: 'New card' },
-    { keys: ['N'], description: 'New lane' },
-    { keys: ['y'], description: 'Yank card' },
-    { keys: ['p'], description: 'Paste card' },
-    { keys: ['x'], description: 'Delete card (confirm)' },
-    { keys: ['⇧', 'x'], description: 'Delete lane (confirm)' },
 ]
 
 export default function Welcome({ onOpenFolder }) {
