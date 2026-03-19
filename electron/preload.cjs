@@ -9,4 +9,5 @@ contextBridge.exposeInMainWorld('lanepad', {
   writePage: (folder, file, data) => ipcRenderer.invoke('write-page', folder, file, data),
   deletePage: (folder, file) => ipcRenderer.invoke('delete-page', folder, file),
   renamePage: (folder, oldName, newName) => ipcRenderer.invoke('rename-page', folder, oldName, newName),
+  onNewPage: (callback) => ipcRenderer.on('menu-new-page', callback),
 })
