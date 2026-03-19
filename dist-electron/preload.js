@@ -16,7 +16,8 @@ var require_preload = /* @__PURE__ */ __commonJSMin((() => {
 		readPage: (folder, file) => ipcRenderer.invoke("read-page", folder, file),
 		writePage: (folder, file, data) => ipcRenderer.invoke("write-page", folder, file, data),
 		deletePage: (folder, file) => ipcRenderer.invoke("delete-page", folder, file),
-		renamePage: (folder, oldName, newName) => ipcRenderer.invoke("rename-page", folder, oldName, newName)
+		renamePage: (folder, oldName, newName) => ipcRenderer.invoke("rename-page", folder, oldName, newName),
+		onNewPage: (callback) => ipcRenderer.on("menu-new-page", callback)
 	});
 }));
 //#endregion

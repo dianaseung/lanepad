@@ -4,7 +4,7 @@ import './Sidebar.css'
 
 export default function Sidebar({
     folder, pages, activePage,
-    onSelectPage, onNewPage, onDeletePage, onRenamePage,
+    onSelectPage, onNewPage, onDeletePage, onRenamePage, onExportPage,
     collapsed, onToggleCollapse,
 }) {
     const folderName = folder.split('/').pop()
@@ -52,6 +52,7 @@ export default function Sidebar({
                         onSelect={() => onSelectPage(fileName)}
                         onDelete={() => onDeletePage(fileName)}
                         onRenameFile={(newFileName) => onRenamePage(fileName, newFileName)}
+                        onExport={() => onExportPage(fileName)}
                     />
                 ))}
             </div>
@@ -71,7 +72,7 @@ export default function Sidebar({
     )
 }
 
-function PageItem({ fileName, title, isActive, onSelect, onDelete, onRenameFile }) {
+function PageItem({ fileName, title, isActive, onSelect, onDelete, onRenameFile, onExport }) {
     const [renamingFile, setRenamingFile] = useState(false)
     const [renameValue, setRenameValue] = useState(fileName.replace('.lanepad', ''))
 
@@ -146,6 +147,12 @@ function PageItem({ fileName, title, isActive, onSelect, onDelete, onRenameFile 
                         onSelect={startRename}
                     >
                         Rename file
+                    </ContextMenu.Item>
+                    <ContextMenu.Item
+                        className="context-menu-item"
+                        onSelect={onExport}
+                    >
+                        Export as Markdown
                     </ContextMenu.Item>
                     <ContextMenu.Separator className="context-menu-separator" />
                     <ContextMenu.Item

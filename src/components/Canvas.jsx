@@ -20,7 +20,7 @@ import {
 import CardDragOverlay from './CardDragOverlay.jsx'
 import './Canvas.css'
 
-export default function Canvas({ folder, fileName, onSaveReady, onExportReady, onRefresh, onFileRenamed }) {
+export default function Canvas({ folder, fileName, onSaveReady, onRefresh, onFileRenamed }) {
     const [initialData, setInitialData] = useState(null)
 
     useEffect(() => {
@@ -37,14 +37,13 @@ export default function Canvas({ folder, fileName, onSaveReady, onExportReady, o
             fileName={fileName}
             initialData={initialData}
             onSaveReady={onSaveReady}
-            onExportReady={onExportReady}
             onRefresh={onRefresh}
             onFileRenamed={onFileRenamed}
         />
     )
 }
 
-function CanvasInner({ folder, fileName, initialData, onSaveReady, onExportReady, onRefresh, onFileRenamed }) {
+function CanvasInner({ folder, fileName, initialData, onSaveReady, onRefresh, onFileRenamed }) {
     const [dirty, setDirty] = useState(false)
     const [activeCard, setActiveCard] = useState(null)
 
@@ -140,47 +139,15 @@ function CanvasInner({ folder, fileName, initialData, onSaveReady, onExportReady
         setDirty(true)
     }, [page])
 
-    // ── Save / export ────────────────────────────────────────────
+    // ── Save ────────────────────────────────────────────
     async function save() {
         await window.lanepad.writePage(folder, fileName, page)
         setDirty(false)
         if (onRefresh) onRefresh()
     }
 
-    function exportMarkdown() {
-        const lines = [`# ${page.title}`, '']
-        for (const lane of page.lanes) {
-            lines.push(`## ${lane.name}`, '')
-            for (const card of lane.cards) {
-                if (card.type === 'heading') {
-                    lines.push(`### ${card.title}`, '')
-                } else if (card.type === 'note') {
-                    lines.push(`### ${card.title}`, '')
-                    if (card.content) lines.push(card.content, '')
-                } else if (card.type === 'code') {
-                    lines.push(`### ${card.title}`, '')
-                    if (card.content) {
-                        lines.push(`\`\`\`${card.language}`, card.content, '```', '')
-                    }
-                }
-            }
-        }
-        const md = lines.join('\n')
-        const blob = new Blob([md], { type: 'text/markdown' })
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = `${page.title.toLowerCase().replace(/\s+/g, '-')}.md`
-        a.click()
-        URL.revokeObjectURL(url)
-    }
-
     useEffect(() => {
         if (onSaveReady) onSaveReady(save)
-    }, [page])
-
-    useEffect(() => {
-        if (onExportReady) onExportReady(exportMarkdown)
     }, [page])
 
     // ── Drag and drop ────────────────────────────────────────────

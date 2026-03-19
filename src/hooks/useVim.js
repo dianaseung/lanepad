@@ -116,11 +116,11 @@ export function useVim({
                 return
             }
 
-            if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
-                e.preventDefault()
-                onNewPage?.()
-                return
-            }
+            // if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
+            //     e.preventDefault()
+            //     onNewPage?.()
+            //     return
+            // }
 
             if ((e.metaKey || e.ctrlKey) && e.key === 'f') {
                 e.preventDefault()

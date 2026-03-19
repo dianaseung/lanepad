@@ -15,15 +15,22 @@ export default function App() {
     const [quickSwitcherOpen, setQuickSwitcherOpen] = useState(false)
 
     const saveRef = useRef(null)
-    const exportRef = useRef(null)
 
+    // ── Auto-open last folder ─────────────────────────────────────
     useEffect(() => {
         window.lanepad.getLastFolder().then(f => {
             if (f) openFolder(f)
         })
     }, [])
 
-    // Cmd+B and Cmd+P at app level
+    // ── IPC: new page from main process (Cmd+N) ───────────────────
+    useEffect(() => {
+        window.lanepad.onNewPage(() => {
+            if (folder) handleNewPage()
+        })
+    }, [folder])
+
+    // ── Cmd+B and Cmd+P ───────────────────────────────────────────
     useEffect(() => {
         function handleKeyDown(e) {
             if ((e.metaKey || e.ctrlKey) && e.key === 'b') {
@@ -39,6 +46,7 @@ export default function App() {
         return () => window.removeEventListener('keydown', handleKeyDown)
     }, [])
 
+    // ── Folder ────────────────────────────────────────────────────
     async function openFolder(folderPath) {
         setFolder(folderPath)
         await refreshPages(folderPath)
@@ -57,6 +65,7 @@ export default function App() {
         return pagesWithTitles
     }
 
+    // ── Page actions ──────────────────────────────────────────────
     async function handleNewPage() {
         const timestamp = Date.now()
         const fileName = `Untitled-${timestamp}.lanepad`
@@ -82,6 +91,38 @@ export default function App() {
         await refreshPages(folder)
     }
 
+    async function handleExportPage(fileName) {
+        const data = await window.lanepad.readPage(folder, fileName)
+        if (!data) return
+
+        const lines = [`# ${data.title}`, '']
+        for (const lane of data.lanes) {
+            lines.push(`## ${lane.name}`, '')
+            for (const card of lane.cards) {
+                if (card.type === 'heading') {
+                    lines.push(`### ${card.title}`, '')
+                } else if (card.type === 'note') {
+                    lines.push(`### ${card.title}`, '')
+                    if (card.content) lines.push(card.content, '')
+                } else if (card.type === 'code') {
+                    lines.push(`### ${card.title}`, '')
+                    if (card.content) {
+                        lines.push(`\`\`\`${card.language}`, card.content, '```', '')
+                    }
+                }
+            }
+        }
+
+        const md = lines.join('\n')
+        const blob = new Blob([md], { type: 'text/markdown' })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `${data.title.toLowerCase().replace(/\s+/g, '-')}.md`
+        a.click()
+        URL.revokeObjectURL(url)
+    }
+
     return (
         <div className="app-shell">
             <div className="app-body">
@@ -95,6 +136,7 @@ export default function App() {
                             onNewPage={handleNewPage}
                             onDeletePage={handleDeletePage}
                             onRenamePage={handleRenamePage}
+                            onExportPage={handleExportPage}
                             collapsed={sidebarCollapsed}
                             onToggleCollapse={() => setSidebarCollapsed(v => !v)}
                         />
@@ -103,7 +145,6 @@ export default function App() {
                                 activePage={activePage}
                                 pages={pages}
                                 onSave={() => saveRef.current?.()}
-                                onExport={() => exportRef.current?.()}
                             />
                             <div className="canvas-area">
                                 {activePage
@@ -112,7 +153,6 @@ export default function App() {
                                         folder={folder}
                                         fileName={activePage}
                                         onSaveReady={(fn) => { saveRef.current = fn }}
-                                        onExportReady={(fn) => { exportRef.current = fn }}
                                         onRefresh={() => refreshPages(folder)}
                                         onFileRenamed={(newFileName) => {
                                             setActivePage(newFileName)
