@@ -284,3 +284,23 @@
 .card-drag-handle:active {
   cursor: grabbing;
 }
+
+.card.vim-focused {
+    outline: 2px solid #4a9eff;
+    outline-offset: 1px;
+}
+
+.card.vim-focused .card-header {
+    background: #1a2a3a;
+}
+
+/* Don't override colored headers with focus style */
+.card.vim-focused .card-header[style*="background"] {
+    filter: brightness(1.1);
+}
+
+.card-heading.vim-focused {
+    outline: 2px solid #4a9eff;
+    outline-offset: 1px;
+    border-radius: 4px;
+}

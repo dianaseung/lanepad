@@ -1,5 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { usePage } from '../hooks/usePage.js'
+import { useVim } from '../hooks/useVim.js'
+import { nanoid } from 'nanoid'
 import Lane from './Lane.jsx'
 import {
     DndContext,
@@ -44,6 +46,7 @@ export default function Canvas({ folder, fileName, onSaveReady, onExportReady, o
 function CanvasInner({ folder, fileName, initialData, onSaveReady, onExportReady, onRefresh }) {
     const [dirty, setDirty] = useState(false)
     const [activeCard, setActiveCard] = useState(null)
+    const titleInputRef = useRef(null)
 
     const {
         page, setDirection, setTitle,
@@ -51,9 +54,107 @@ function CanvasInner({ folder, fileName, initialData, onSaveReady, onExportReady
         addCard, updateCard, deleteCard, reorderCards, moveCard,
     } = usePage(initialData)
 
+    // ── Vim hook ─────────────────────────────────────────────────
+
+    const {
+        cursor,
+        setCursor,
+        getFocusedCard,
+        getFocusedLane,
+    } = useVim({
+        page,
+        addLane: () => addLane(),
+        addCard: (laneIndex, insertIndex, template) => {
+            const lane = page.lanes[laneIndex]
+            if (lane) addCard(lane.id, 'code', insertIndex, template)
+        },
+        deleteCard: (laneIndex, cardId) => {
+            const lane = page.lanes[laneIndex]
+            if (lane) deleteCard(lane.id, cardId)
+        },
+        deleteLane: (laneId) => deleteLane(laneId),
+        reorderCards: (laneId, newCards) => reorderCards(laneId, newCards),
+        updateLane: (laneId, changes) => updateLane(laneId, changes),
+        onSave: () => save(),
+        onNewPage: () => onNewPage?.(),
+    })
+
+    // ── Paste card ───────────────────────────────────────────────
+
+    // We need to handle paste here since it needs addCard/updateCard
     useEffect(() => {
+        function handlePaste(e) {
+            if (document.activeElement?.tagName.toLowerCase() === 'input') return
+            if (document.activeElement?.tagName.toLowerCase() === 'textarea') return
+            if (document.activeElement?.closest('.cm-editor')) return
+        }
+    }, [])
+
+    // ── Space to toggle collapse on focused card ─────────────────
+
+    useEffect(() => {
+        function handleSpace(e) {
+            if (e.key !== ' ') return
+            const active = document.activeElement
+            if (!active) return
+            const tag = active.tagName.toLowerCase()
+            if (tag === 'input' || tag === 'textarea' || active.closest('.cm-editor')) return
+            if (active.tagName.toLowerCase() === 'button') return
+
+            e.preventDefault()
+            const focusedCard = getFocusedCard()
+            if (!focusedCard) return
+            const lane = page.lanes[cursor.laneIndex]
+            if (!lane) return
+            updateCard(lane.id, focusedCard.id, { collapsed: !focusedCard.collapsed })
+        }
+        window.addEventListener('keydown', handleSpace)
+        return () => window.removeEventListener('keydown', handleSpace)
+    }, [page, cursor, getFocusedCard])
+
+    // ── Enter / Shift+Enter to enter insert mode ─────────────────
+
+    useEffect(() => {
+        function handleEnter(e) {
+            if (e.key !== 'Enter') return
+            const active = document.activeElement
+            const tag = active?.tagName.toLowerCase()
+            if (tag === 'input' || tag === 'textarea' || active?.closest('.cm-editor')) return
+
+            e.preventDefault()
+            const focusedCard = getFocusedCard()
+            if (!focusedCard) return
+
+            if (e.shiftKey) {
+                // Focus card title input
+                const cardEl = document.querySelector(`[data-card-id="${focusedCard.id}"]`)
+                const titleEl = cardEl?.querySelector('.card-title')
+                if (titleEl) titleEl.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }))
+            } else {
+                // Focus code editor or note textarea
+                const cardEl = document.querySelector(`[data-card-id="${focusedCard.id}"]`)
+                const cmEl = cardEl?.querySelector('.cm-content')
+                const textareaEl = cardEl?.querySelector('.card-note-editor')
+                if (cmEl) cmEl.focus()
+                else if (textareaEl) textareaEl.focus()
+            }
+        }
+        window.addEventListener('keydown', handleEnter)
+        return () => window.removeEventListener('keydown', handleEnter)
+    }, [page, cursor, getFocusedCard])
+
+    // ── Dirty tracking ───────────────────────────────────────────
+
+    const isFirstRender = useRef(true)
+    useEffect(() => {
+        if (isFirstRender.current) {
+            isFirstRender.current = false
+            return
+        }
         setDirty(true)
     }, [page])
+
+    // ── Save / export ────────────────────────────────────────────
 
     async function save() {
         await window.lanepad.writePage(folder, fileName, page)
@@ -63,7 +164,6 @@ function CanvasInner({ folder, fileName, initialData, onSaveReady, onExportReady
 
     function exportMarkdown() {
         const lines = [`# ${page.title}`, '']
-
         for (const lane of page.lanes) {
             lines.push(`## ${lane.name}`, '')
             for (const card of lane.cards) {
@@ -80,7 +180,6 @@ function CanvasInner({ folder, fileName, initialData, onSaveReady, onExportReady
                 }
             }
         }
-
         const md = lines.join('\n')
         const blob = new Blob([md], { type: 'text/markdown' })
         const url = URL.createObjectURL(blob)
@@ -99,16 +198,7 @@ function CanvasInner({ folder, fileName, initialData, onSaveReady, onExportReady
         if (onExportReady) onExportReady(exportMarkdown)
     }, [page])
 
-    useEffect(() => {
-        function onKeyDown(e) {
-            if ((e.metaKey || e.ctrlKey) && e.key === 's') {
-                e.preventDefault()
-                save()
-            }
-        }
-        window.addEventListener('keydown', onKeyDown)
-        return () => window.removeEventListener('keydown', onKeyDown)
-    }, [page])
+    // ── Drag and drop ────────────────────────────────────────────
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -137,13 +227,11 @@ function CanvasInner({ folder, fileName, initialData, onSaveReady, onExportReady
         if (!activeLane) return
 
         const overCardLane = findLaneByCardId(over.id)
-
         const overLaneBody = over.id.toString().startsWith('lane-body-')
             ? page.lanes.find(l => l.id === over.id.toString().replace('lane-body-', ''))
             : null
 
         const overLane = overCardLane ?? overLaneBody
-
         if (!overLane || activeLane.id === overLane.id) return
 
         const toIndex = overCardLane
@@ -187,16 +275,24 @@ function CanvasInner({ folder, fileName, initialData, onSaveReady, onExportReady
     }
 
     const laneIds = page.lanes.map(l => l.id)
+    const focusedCard = getFocusedCard()
 
     return (
-        <div className={`canvas-root direction-${page.direction}`}>
+        <div
+            className={`canvas-root direction-${page.direction}`}
+            onClick={(e) => {
+                if (e.target === e.currentTarget) document.activeElement?.blur()
+            }}
+        >
             <div className="canvas-toolbar">
                 <input
+                    ref={titleInputRef}
                     className="page-title-input"
                     value={page.title}
                     onChange={e => setTitle(e.target.value)}
                     placeholder="Page title"
                 />
+                {dirty && <span className="dirty-indicator">⚠️ Unsaved changes</span>}
                 <div className="direction-toggle">
                     <button
                         className={page.direction === 'horizontal' ? 'active' : ''}
@@ -209,7 +305,6 @@ function CanvasInner({ folder, fileName, initialData, onSaveReady, onExportReady
                         title="Vertical lanes (columns)"
                     >⇅ Columns</button>
                 </div>
-                {dirty && <span className="dirty-indicator">Unsaved changes</span>}
             </div>
 
             <DndContext
@@ -228,16 +323,22 @@ function CanvasInner({ folder, fileName, initialData, onSaveReady, onExportReady
                     }
                 >
                     <div className="lanes-container">
-                        {page.lanes.map(lane => (
+                        {page.lanes.map((lane, laneIndex) => (
                             <Lane
                                 key={lane.id}
                                 lane={lane}
                                 direction={page.direction}
+                                focusedCardId={cursor.laneIndex === laneIndex ? focusedCard?.id : null}
+                                isLaneFocused={cursor.laneIndex !== null && cursor.laneIndex === laneIndex}
                                 onUpdateLane={(changes) => updateLane(lane.id, changes)}
                                 onDeleteLane={() => deleteLane(lane.id)}
                                 onAddCard={(type) => addCard(lane.id, type)}
                                 onUpdateCard={(cardId, changes) => updateCard(lane.id, cardId, changes)}
                                 onDeleteCard={(cardId) => deleteCard(lane.id, cardId)}
+                                onCardClick={(cardId) => {
+                                    const cardIndex = lane.cards.findIndex(c => c.id === cardId)
+                                    setCursor({ laneIndex, cardIndex })
+                                }}
                             />
                         ))}
                         <button className="add-lane-btn" onClick={addLane}>
