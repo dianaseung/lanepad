@@ -59,9 +59,6 @@ function CanvasInner({ folder, fileName, initialData, onSaveReady, onExportReady
     const {
         cursor,
         setCursor,
-        pendingDelete,
-        pendingLaneDelete,
-        laneDeleteBlocked,
         getFocusedCard,
         getFocusedLane,
     } = useVim({
@@ -295,6 +292,7 @@ function CanvasInner({ folder, fileName, initialData, onSaveReady, onExportReady
                     onChange={e => setTitle(e.target.value)}
                     placeholder="Page title"
                 />
+                {dirty && <span className="dirty-indicator">⚠️ Unsaved changes</span>}
                 <div className="direction-toggle">
                     <button
                         className={page.direction === 'horizontal' ? 'active' : ''}
@@ -307,16 +305,6 @@ function CanvasInner({ folder, fileName, initialData, onSaveReady, onExportReady
                         title="Vertical lanes (columns)"
                     >⇅ Columns</button>
                 </div>
-                {dirty && <span className="dirty-indicator">Unsaved changes</span>}
-                {pendingDelete && (
-                    <span className="delete-confirm-indicator">press x again to confirm delete</span>
-                )}
-                {pendingLaneDelete && (
-                    <span className="delete-confirm-indicator">press Shift+X again to confirm lane delete</span>
-                )}
-                {laneDeleteBlocked && (
-                    <span className="delete-confirm-indicator">remove all cards before deleting lane</span>
-                )}
             </div>
 
             <DndContext

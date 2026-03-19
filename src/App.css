@@ -22,5 +22,5 @@
 .canvas-area {
     flex: 1;
     overflow: auto;
-    padding: 24px;
+    padding: 0;
 }
