@@ -14,6 +14,7 @@ function createWindow() {
     width: 1400,
     height: 900,
     titleBarStyle: 'hiddenInset', // clean macOS look
+    trafficLightPosition: { x: 12, y: 12 },
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,
