@@ -119,3 +119,9 @@
 .page-title-input:focus {
   border-bottom-color: #4a9eff;
 }
+
+.delete-confirm-indicator {
+    font-size: 11px;
+    color: #e05555;
+    font-style: italic;
+}
