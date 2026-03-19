@@ -11,6 +11,8 @@ export default function Lane({
     onAddCard, onUpdateCard, onDeleteCard,
     focusedCardId, onCardClick,
     isLaneFocused,
+    findMatchCardId,
+    findMatchCardIds,
 }) {
     const [editingName, setEditingName] = useState(false)
     const [nameValue, setNameValue] = useState(lane.name)
@@ -129,6 +131,8 @@ export default function Lane({
                                 key={card.id}
                                 card={card}
                                 isFocused={focusedCardId === card.id}
+                                isCurrentMatch={findMatchCardId === card.id}
+                                isMatch={findMatchCardIds?.includes(card.id)}
                                 onUpdate={(changes) => onUpdateCard(card.id, changes)}
                                 onDelete={() => onDeleteCard(card.id)}
                                 onClick={() => onCardClick(card.id)}
@@ -153,7 +157,7 @@ function DroppableLaneBody({ laneId, children }) {
     )
 }
 
-function SortableCard({ card, onUpdate, onDelete, onClick, isFocused }) {
+function SortableCard({ card, onUpdate, onDelete, onClick, isFocused, isMatch, isCurrentMatch }) {
     const {
         attributes,
         listeners,
@@ -174,6 +178,8 @@ function SortableCard({ card, onUpdate, onDelete, onClick, isFocused }) {
             <Card
                 card={card}
                 isFocused={isFocused}
+                isMatch={isMatch}
+                isCurrentMatch={isCurrentMatch}
                 onUpdate={onUpdate}
                 onDelete={onDelete}
                 dragHandleProps={{ ...attributes, ...listeners }}

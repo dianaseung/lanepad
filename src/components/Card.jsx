@@ -18,7 +18,7 @@ const LANGUAGES = [
     'json', 'bash', 'html', 'css', 'other'
 ]
 
-export default function Card({ card, onUpdate, onDelete, dragHandleProps = {}, isFocused }) {
+export default function Card({ card, onUpdate, onDelete, dragHandleProps = {}, isFocused, isMatch, isCurrentMatch }) {
     const [editingTitle, setEditingTitle] = useState(false)
     const [titleValue, setTitleValue] = useState(card.title)
     const [showColorPicker, setShowColorPicker] = useState(false)
@@ -50,7 +50,7 @@ export default function Card({ card, onUpdate, onDelete, dragHandleProps = {}, i
     if (card.type === 'heading') {
         return (
             <div
-                className={`card card-heading ${isFocused ? 'vim-focused' : ''}`}
+                className={`card card-heading ${isFocused ? 'vim-focused' : ''} ${isCurrentMatch ? 'find-current' : isMatch ? 'find-match' : ''}`}
                 data-card-id={card.id}
             >
                 <button className="card-drag-handle" {...dragHandleProps} title="Drag to reorder">⠿</button>
@@ -79,7 +79,7 @@ export default function Card({ card, onUpdate, onDelete, dragHandleProps = {}, i
 
     return (
         <div
-            className={`card ${card.collapsed ? 'collapsed' : ''} ${isFocused ? 'vim-focused' : ''}`}
+            className={`card ${card.collapsed ? 'collapsed' : ''} ${isFocused ? 'vim-focused' : ''} ${isCurrentMatch ? 'find-current' : isMatch ? 'find-match' : ''}`}
             data-card-id={card.id}
         >
             <div

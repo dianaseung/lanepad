@@ -2,11 +2,38 @@
     width: 220px;
     min-width: 220px;
     background: #111;
-    border-right: 1px solid #2a2a2a;
     display: flex;
     flex-direction: column;
     height: 100%;
     user-select: none;
+    transition: width 0.2s ease, min-width 0.2s ease;
+    overflow: hidden;
+}
+
+.sidebar-collapsed {
+    width: 48px;
+    min-width: 48px;
+    cursor: pointer;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: 52px;
+}
+
+.sidebar-collapsed:hover {
+    background: #161616;
+}
+
+.sidebar-collapsed-icon {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #555;
+    padding: 12px 0;
+}
+
+.sidebar-collapsed:hover .sidebar-collapsed-icon {
+    color: #aaa;
 }
 
 .sidebar-header {
@@ -15,6 +42,13 @@
     justify-content: space-between;
     padding: 52px 14px 12px 14px;
     border-bottom: 1px solid #2a2a2a;
+}
+
+.sidebar-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
 }
 
 .sidebar-folder-name {
@@ -42,6 +76,23 @@
 
 .sidebar-new-btn:hover {
     color: #e0e0e0;
+    background: #2a2a2a;
+}
+
+.sidebar-collapse-btn {
+    background: none;
+    border: none;
+    color: #555;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 0 3px;
+    border-radius: 3px;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.sidebar-collapse-btn:hover {
+    color: #aaa;
     background: #2a2a2a;
 }
 

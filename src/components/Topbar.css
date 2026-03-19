@@ -1,7 +1,7 @@
 .topbar {
   height: 44px;
   min-height: 44px;
-  background: #161616;
+  background: #111;
   border-bottom: 1px solid #2a2a2a;
   display: flex;
   align-items: center;
@@ -14,6 +14,9 @@
   font-size: 13px;
   font-weight: 500;
   color: #888;
+  flex: 1;
+  max-width: 80%;
+  text-align: center;
   -webkit-app-region: no-drag;
 }
 
