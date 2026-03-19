@@ -225,3 +225,21 @@
     resize: none;
     outline: none;
 }
+
+.save-status {
+    font-size: 14px;
+    /* font-style: italic; */
+    transition: opacity 0.5s ease;
+}
+
+.save-status.unsaved {
+    color: #de5555;
+}
+
+.save-status.saving {
+    color: #999999;
+}
+
+.save-status.saved {
+    color: #24d7ff88;
+}

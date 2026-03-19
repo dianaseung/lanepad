@@ -5,13 +5,13 @@ import CodeEditor from './CodeEditor.jsx'
 
 const COLORS = [
     { id: 'none', label: 'None', value: null },
-    { id: 'white', label: 'White', value: '#ffffff' },
-    { id: 'blue', label: 'Blue', value: '#9fefe8' },
-    { id: 'green', label: 'Green', value: '#aee88e' },
+    { id: 'pink', label: 'Pink', value: '#ffc9f2' },
     { id: 'yellow', label: 'Yellow', value: '#ecd62e' },
-    { id: 'red', label: 'Red', value: '#fb3c3c' },
-    { id: 'purple', label: 'Purple', value: '#cca5f3' },
+    { id: 'green', label: 'Green', value: '#aee88e' },
+    { id: 'blue', label: 'Blue', value: '#9fefe8' },
     { id: 'teal', label: 'Teal', value: '#00ffb3' },
+    { id: 'purple', label: 'Purple', value: '#cca5f3' },
+    { id: 'white', label: 'White', value: '#ffffff' },
 ]
 
 const LANGUAGES = [
