@@ -60,19 +60,24 @@ function CanvasInner({ folder, fileName, initialData, onSaveReady, onExportReady
         cursor,
         setCursor,
         pendingDelete,
+        pendingLaneDelete,
+        laneDeleteBlocked,
         getFocusedCard,
+        getFocusedLane,
     } = useVim({
         page,
         addLane: () => addLane(),
-        addCard: (laneIndex) => {
+        addCard: (laneIndex, insertIndex, template) => {
             const lane = page.lanes[laneIndex]
-            if (lane) addCard(lane.id, 'code')
+            if (lane) addCard(lane.id, 'code', insertIndex, template)
         },
         deleteCard: (laneIndex, cardId) => {
             const lane = page.lanes[laneIndex]
             if (lane) deleteCard(lane.id, cardId)
         },
+        deleteLane: (laneId) => deleteLane(laneId),
         reorderCards: (laneId, newCards) => reorderCards(laneId, newCards),
+        updateLane: (laneId, changes) => updateLane(laneId, changes),
         onSave: () => save(),
         onNewPage: () => onNewPage?.(),
     })
@@ -306,6 +311,12 @@ function CanvasInner({ folder, fileName, initialData, onSaveReady, onExportReady
                 {pendingDelete && (
                     <span className="delete-confirm-indicator">press x again to confirm delete</span>
                 )}
+                {pendingLaneDelete && (
+                    <span className="delete-confirm-indicator">press Shift+X again to confirm lane delete</span>
+                )}
+                {laneDeleteBlocked && (
+                    <span className="delete-confirm-indicator">remove all cards before deleting lane</span>
+                )}
             </div>
 
             <DndContext
@@ -330,6 +341,7 @@ function CanvasInner({ folder, fileName, initialData, onSaveReady, onExportReady
                                 lane={lane}
                                 direction={page.direction}
                                 focusedCardId={cursor.laneIndex === laneIndex ? focusedCard?.id : null}
+                                isLaneFocused={cursor.laneIndex === laneIndex}
                                 onUpdateLane={(changes) => updateLane(lane.id, changes)}
                                 onDeleteLane={() => deleteLane(lane.id)}
                                 onAddCard={(type) => addCard(lane.id, type)}

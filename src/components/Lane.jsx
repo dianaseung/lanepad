@@ -10,6 +10,7 @@ export default function Lane({
     onUpdateLane, onDeleteLane,
     onAddCard, onUpdateCard, onDeleteCard,
     focusedCardId, onCardClick,
+    isLaneFocused,
 }) {
     const [editingName, setEditingName] = useState(false)
     const [nameValue, setNameValue] = useState(lane.name)
@@ -47,6 +48,7 @@ export default function Lane({
         <div
             ref={setNodeRef}
             style={style}
+            data-lane-id={lane.id}
             className={`lane direction-${direction} ${lane.collapsed ? 'collapsed' : ''}`}
         >
             <div className="lane-header">

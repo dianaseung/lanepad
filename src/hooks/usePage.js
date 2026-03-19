@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import { nanoid } from 'nanoid'
 import { newLane, newCard } from '../utils/pageDefaults.js'
 
 export function usePage(initialData) {
@@ -35,15 +36,23 @@ export function usePage(initialData) {
 
   // ── Cards ────────────────────────────────────────────────────
 
-    const addCard = useCallback((laneId, type = 'code') => {
-    setPage(p => ({
-        ...p,
-        lanes: p.lanes.map(l =>
-        l.id === laneId
-            ? { ...l, cards: [...l.cards, newCard('Untitled Card', type)] }
-            : l
-        ),
-    }))
+    const addCard = useCallback((laneId, type = 'code', insertIndex = null, template = null) => {
+        setPage(p => ({
+            ...p,
+            lanes: p.lanes.map(l => {
+                if (l.id !== laneId) return l
+                const card = template
+                    ? { ...template, id: nanoid() }
+                    : newCard('Untitled Card', type)
+                const cards = [...l.cards]
+                if (insertIndex === null) {
+                    cards.push(card)
+                } else {
+                    cards.splice(insertIndex, 0, card)
+                }
+                return { ...l, cards }
+            }),
+        }))
     }, [])
 
   const updateCard = useCallback((laneId, cardId, changes) => {

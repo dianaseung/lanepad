@@ -195,3 +195,12 @@
   border-radius: 6px;
   outline: 1px dashed #3a5a3a;
 }
+
+.lane.lane-vim-focused {
+    outline: 2px solid #4a9eff44;
+    outline-offset: 1px;
+}
+
+.lane.lane-vim-focused .lane-header {
+    background: #1a2233;
+}
