@@ -145,6 +145,7 @@ export default function App() {
                                 activePage={activePage}
                                 pages={pages}
                                 onSave={() => saveRef.current?.()}
+                                onClose={() => setActivePage(null)}
                             />
                             <div className="canvas-area">
                                 {activePage
