@@ -1,12 +1,17 @@
 # Lanepad
 
-A vim-like code scratchpad for software engineers. Organize code snippets, API shapes, and architecture notes into named swimlanes on freeform pages — all stored as plain JSON files on disk.
+A vim-like code scratchpad for engineers. 
+Organize code snippets, API shapes, and architecture notes into named swimlanes on freeform pages — all stored as plain JSON files on disk.
 
-![Lanepad](./screenshot.png)
+![Lanepad](./assets/lanepad-welcome.png)
+
+| | |
+| :---: | :---: |
+| ![Screenshot 1](./assets/lanepad-branch.png) | ![Screenshot 2](./assets/lanepad-dump.png) |
 
 ## What it is
 
-Lanepad sits between a whiteboard and a code editor. It's designed for moments when you need to think through a data model, sketch an API surface, or organize your thoughts before writing code — with full syntax highlighting, vim motions, and a keyboard-driven workflow.
+Lanepad sits between a whiteboard and a code editor. It's designed for moments when you need to think through a data model, sketch an API surface, or organize your thoughts — with full syntax highlighting, vim motions code editor, and a vim-inspired keybind-driven workflow.
 
 ## Getting started
 
@@ -16,6 +21,7 @@ Lanepad sits between a whiteboard and a code editor. It's designed for moments w
 - npm
 
 ### Install and run
+Release installers coming for v1.0.0
 ```bash
 git clone <your-repo-url>
 cd lanepad
@@ -36,7 +42,7 @@ Open any folder as a project. Each page is a `.lanepad` file (JSON) stored direc
 
 ### Pages and lanes
 
-Each page contains named **swimlanes**. Pages can be set to **Rows** mode (horizontal lanes stacked top to bottom) or **Columns** mode (vertical lanes side by side). Toggle between modes with the ⇆/⇅ buttons in the canvas toolbar.
+Each page contains named **lanes**. Pages can be set to **Rows** mode (horizontal lanes stacked top to bottom) or **Columns** mode (vertical lanes side by side). Toggle between modes with the ⇆/⇅ buttons in the canvas toolbar.
 
 ### Cards
 
