@@ -128,3 +128,100 @@
 .page-title-input:focus {
   border-bottom-color: #4a9eff;
 }
+
+.canvas-focus-mode {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.focus-toolbar {
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
+    border-bottom: 1px solid #2a2a2a;
+    background: #161616;
+    flex-shrink: 0;
+    gap: 16px;
+}
+
+.focus-exit-btn {
+    background: none;
+    border: 1px solid #333;
+    border-radius: 5px;
+    color: #aaa;
+    font-size: 12px;
+    padding: 4px 12px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.focus-exit-btn:hover {
+    background: #2a2a2a;
+    color: #e0e0e0;
+    border-color: #555;
+}
+
+.focus-breadcrumb {
+    flex: 1;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 500;
+    color: #888;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.focus-export-btn {
+    background: none;
+    border: 1px solid #333;
+    border-radius: 5px;
+    color: #aaa;
+    font-size: 12px;
+    padding: 4px 12px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.focus-export-btn:hover {
+    background: #2a2a2a;
+    color: #e0e0e0;
+    border-color: #555;
+}
+
+.focus-card-body {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.focus-editor-wrap {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.focus-editor-wrap .cm-editor {
+    height: 100%;
+}
+
+.focus-editor-wrap .cm-scroller {
+    overflow: auto;
+}
+
+.focus-note-editor {
+    flex: 1;
+    width: 100%;
+    background: #181818;
+    border: none;
+    color: #d4d4d4;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 14px;
+    line-height: 1.7;
+    padding: 24px 32px;
+    resize: none;
+    outline: none;
+}

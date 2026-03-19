@@ -3,22 +3,22 @@ import './StatusBar.css'
 
 export default function StatusBar() {
     const { vimState } = useVimContext()
-    const { cursor, insertMode, pendingDelete, pendingLaneDelete, laneDeleteBlocked, yanked, page } = vimState
+    const {
+        cursor, insertMode, pendingDelete, pendingLaneDelete,
+        laneDeleteBlocked, yanked, page, focusMode
+    } = vimState
 
     const isDefocused = cursor.laneIndex === null
 
-    // ── Left: location ────────────────────────────────────────────
     function getLocation() {
         if (!page || isDefocused) return '—'
         const lane = page.lanes[cursor.laneIndex]
         if (!lane) return '—'
         const laneCount = page.lanes.length
         const lanePos = `lane ${cursor.laneIndex + 1}/${laneCount}`
-
         if (cursor.cardIndex === null) {
             return `${lane.name}  [${lanePos}]`
         }
-
         const card = lane.cards[cursor.cardIndex]
         if (!card) return `${lane.name}  [${lanePos}]`
         const cardCount = lane.cards.length
@@ -26,7 +26,6 @@ export default function StatusBar() {
         return `${lane.name}  ›  ${card.title}  [${lanePos} · ${cardPos}]`
     }
 
-    // ── Middle: hints ─────────────────────────────────────────────
     function getHint() {
         if (laneDeleteBlocked) return 'remove all cards before deleting lane'
         if (pendingLaneDelete) return 'press Shift+X again to confirm lane delete'
@@ -35,8 +34,8 @@ export default function StatusBar() {
         return ''
     }
 
-    // ── Right: mode ───────────────────────────────────────────────
     function getMode() {
+        if (focusMode) return { label: 'FOCUS', cls: 'mode-focus' }
         if (isDefocused) return { label: '-- --', cls: 'mode-none' }
         if (insertMode) return { label: 'INSERT', cls: 'mode-insert' }
         return { label: 'NORMAL', cls: 'mode-normal' }
