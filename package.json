@@ -1,15 +1,49 @@
 {
   "name": "lanepad",
   "private": true,
-  "version": "0.0.1",
+  "version": "0.8.0",
   "main": "electron/main.js",
   "type": "module",
+  "author": "dianaseung",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "lint": "eslint .",
-    "electron:dev": "vite",
-    "preview": "vite preview"
+    "dist": "vite build && electron-builder",
+    "dist:mac": "vite build && electron-builder --mac",
+    "dist:win": "vite build && electron-builder --win",
+    "dist:linux": "vite build && electron-builder --linux"
+  },
+  "build": {
+    "appId": "com.dianaseung.lanepad",
+    "productName": "Lanepad",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*"
+    ],
+    "mac": {
+      "category": "public.app-category.developer-tools",
+      "icon": "assets/icon.icns",
+      "target": [
+        { "target": "dmg", "arch": ["arm64", "x64"] }
+      ]
+    },
+    "win": {
+      "icon": "assets/icon.ico",
+      "target": [
+        { "target": "nsis", "arch": ["x64"] }
+      ]
+    },
+    "linux": {
+      "icon": "assets/icon.png",
+      "category": "Development",
+      "target": [
+        { "target": "AppImage", "arch": ["x64"] },
+        { "target": "deb", "arch": ["x64"] }
+      ]
+    }
   },
   "dependencies": {
     "@codemirror/lang-css": "^6.3.1",

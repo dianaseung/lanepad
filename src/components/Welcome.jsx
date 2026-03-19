@@ -32,29 +32,11 @@ export default function Welcome({ onOpenFolder }) {
         <div className="welcome">
             {/* Logo */}
             <div className="welcome-logo">
-                <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-                    {/* Outer diamond */}
-                    <path
-                        d="M24 4L44 24L24 44L4 24Z"
-                        stroke="#4a9eff"
-                        strokeWidth="2"
-                        fill="none"
-                    />
-                    {/* Inner lanes */}
-                    <path
-                        d="M24 12L36 24L24 36L12 24Z"
-                        fill="#4a9eff22"
-                        stroke="#4a9eff"
-                        strokeWidth="1.5"
-                    />
-                    {/* Center dot */}
-                    <circle cx="24" cy="24" r="3" fill="#4a9eff" />
-                    {/* Lane dividers */}
-                    <line x1="4" y1="24" x2="12" y2="24" stroke="#4a9eff66" strokeWidth="1" />
-                    <line x1="36" y1="24" x2="44" y2="24" stroke="#4a9eff66" strokeWidth="1" />
-                    <line x1="24" y1="4" x2="24" y2="12" stroke="#4a9eff66" strokeWidth="1" />
-                    <line x1="24" y1="36" x2="24" y2="44" stroke="#4a9eff66" strokeWidth="1" />
-                </svg>
+                {/* <svg width="48" height="48" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 400">
+                    <path d="M 140,0 L 190,120 L 65,380 L 10,280 Z" fill="white"/>
+                    <path d="M 250,250 L 305,380 L 65,380 Z" fill="white"/>
+                </svg> */}
+                <img src="../assets/icon.svg" alt="Lanepad Logo" width="48" height="48" className="welcome-logo-icon" />
                 <div className="welcome-wordmark">
                     <span className="welcome-wordmark-lane">Lane</span>
                     <span className="welcome-wordmark-pad">pad</span>
