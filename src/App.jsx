@@ -145,6 +145,7 @@ export default function App() {
                                 activePage={activePage}
                                 pages={pages}
                                 onSave={() => saveRef.current?.()}
+                                onClose={() => setActivePage(null)}
                             />
                             <div className="canvas-area">
                                 {activePage
@@ -160,7 +161,7 @@ export default function App() {
                                         }}
                                     />
                                     : <div style={{ color: '#555', padding: 40, fontSize: 14 }}>
-                                        Select or create a page
+                                        <Welcome onOpenFolder={openFolder} />
                                     </div>
                                 }
                             </div>

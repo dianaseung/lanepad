@@ -10,6 +10,7 @@ var require_preload = /* @__PURE__ */ __commonJSMin((() => {
 	var { contextBridge, ipcRenderer } = __require("electron");
 	contextBridge.exposeInMainWorld("lanepad", {
 		getLastFolder: () => ipcRenderer.invoke("get-last-folder"),
+		getRecentFolders: () => ipcRenderer.invoke("get-recent-folders"),
 		openFolderDialog: () => ipcRenderer.invoke("open-folder-dialog"),
 		setLastFolder: (p) => ipcRenderer.invoke("set-last-folder", p),
 		listPages: (folder) => ipcRenderer.invoke("list-pages", folder),

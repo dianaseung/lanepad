@@ -14395,15 +14395,22 @@ app.on("window-all-closed", () => {
 ipcMain.handle("get-last-folder", () => {
 	return store.get("lastFolder", null);
 });
+ipcMain.handle("get-recent-folders", () => {
+	return store.get("recentFolders", []);
+});
 ipcMain.handle("open-folder-dialog", async () => {
 	const result = await dialog.showOpenDialog(win, { properties: ["openDirectory"] });
 	if (result.canceled) return null;
 	const folderPath = result.filePaths[0];
 	store.set("lastFolder", folderPath);
+	const updated = [folderPath, ...store.get("recentFolders", []).filter((f) => f !== folderPath)].slice(0, 3);
+	store.set("recentFolders", updated);
 	return folderPath;
 });
 ipcMain.handle("set-last-folder", (_, folderPath) => {
 	store.set("lastFolder", folderPath);
+	const updated = [folderPath, ...store.get("recentFolders", []).filter((f) => f !== folderPath)].slice(0, 3);
+	store.set("recentFolders", updated);
 });
 ipcMain.handle("list-pages", (_, folderPath) => {
 	try {

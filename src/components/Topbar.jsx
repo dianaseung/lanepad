@@ -1,6 +1,6 @@
 import './Topbar.css'
 
-export default function Topbar({ activePage, pages, onSave, onExport }) {
+export default function Topbar({ activePage, pages, onSave, onClose }) {
   const activeMeta = pages.find(p => p.fileName === activePage)
   const title = activeMeta?.title ?? 'Lanepad'
 
@@ -13,6 +13,11 @@ export default function Topbar({ activePage, pages, onSave, onExport }) {
           disabled={!activePage}
           onClick={onSave}
         >Save</button>
+        <button
+            className="btn-topbar btn-topbar-close"
+            disabled={!activePage}
+            onClick={onClose}
+        >Close</button>
       </div>
     </div>
   )
