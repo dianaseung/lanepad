@@ -16,6 +16,7 @@ const SHORTCUTS = [
     { keys: ['y'], description: 'Yank card' },
     { keys: ['p'], description: 'Paste card' },
     { keys: ['x'], description: 'Delete card (confirm)' },
+    { keys: ['⇧', 'x'], description: 'Delete lane (confirm)' },
 ]
 
 export default function Welcome({ onOpenFolder }) {
