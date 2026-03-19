@@ -39,6 +39,12 @@ export default function App() {
     return pagesWithTitles
   }
 
+  async function handleRenamePage(oldFileName, newFileName) {
+    await window.lanepad.renamePage(folder, oldFileName, newFileName)
+    if (activePage === oldFileName) setActivePage(newFileName)
+    await refreshPages(folder)
+  }
+
   async function handleNewPage() {
     const fileName = `untitled-${Date.now()}.lanepad`
     const data = {
@@ -68,8 +74,9 @@ export default function App() {
               activePage={activePage}
               onSelectPage={setActivePage}
               onNewPage={handleNewPage}
-              onRefresh={() => refreshPages(folder)}
+              onRenamePage={handleRenamePage}
               onDeletePage={handleDeletePage}
+              onRefresh={() => refreshPages(folder)}
             />
             <div className="main-area">
               <Topbar
