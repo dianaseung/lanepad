@@ -1,0 +1,48 @@
+.statusbar {
+    height: 24px;
+    min-height: 24px;
+    background: #0e0e0e;
+    border-top: 1px solid #222;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 14px;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    user-select: none;
+    flex-shrink: 0;
+}
+
+.statusbar-location {
+    color: #666;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.statusbar-hint {
+    color: #e05555;
+    flex: 1;
+    text-align: center;
+    font-style: italic;
+}
+
+.statusbar-mode {
+    flex: 1;
+    text-align: right;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+}
+
+.mode-normal {
+    color: #4a9eff;
+}
+
+.mode-insert {
+    color: #aee88e;
+}
+
+.mode-none {
+    color: #444;
+}

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Canvas from './components/Canvas.jsx'
 import Sidebar from './components/Sidebar.jsx'
+import StatusBar from './components/StatusBar.jsx'
 import Topbar from './components/Topbar.jsx'
 import Welcome from './components/Welcome.jsx'
 import './App.css'
@@ -58,42 +59,45 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      {folder ? (
-        <>
-          <Sidebar
-            folder={folder}
-            pages={pages}
-            activePage={activePage}
-            onSelectPage={setActivePage}
-            onNewPage={handleNewPage}
-            onRefresh={() => refreshPages(folder)}
-            onDeletePage={handleDeletePage}
-          />
-          <div className="main-area">
-            <Topbar
-              activePage={activePage}
+      <div className="app-body">
+        {folder ? (
+          <>
+            <Sidebar
+              folder={folder}
               pages={pages}
-              onSave={() => saveRef.current?.()}
-              onExport={() => exportRef.current?.()}
+              activePage={activePage}
+              onSelectPage={setActivePage}
+              onNewPage={handleNewPage}
+              onRefresh={() => refreshPages(folder)}
+              onDeletePage={handleDeletePage}
             />
-            <div className="canvas-area">
-              {activePage
-                ? <Canvas
-                    key={activePage}
-                    folder={folder}
-                    fileName={activePage}
-                    onSaveReady={(fn) => (saveRef.current = fn)}
-                    onExportReady={(fn) => (exportRef.current = fn)}
-                    onRefresh={() => refreshPages(folder)}
-                  />
-                : <div style={{ color: '#555', padding: 40, fontSize: 14 }}>Select or create a page</div>
-              }
+            <div className="main-area">
+              <Topbar
+                activePage={activePage}
+                pages={pages}
+                onSave={() => saveRef.current?.()}
+                onExport={() => exportRef.current?.()}
+              />
+              <div className="canvas-area">
+                {activePage
+                  ? <Canvas
+                      key={activePage}
+                      folder={folder}
+                      fileName={activePage}
+                      onSaveReady={(fn) => (saveRef.current = fn)}
+                      onExportReady={(fn) => (exportRef.current = fn)}
+                      onRefresh={() => refreshPages(folder)}
+                    />
+                  : <div style={{ color: '#555', padding: 40, fontSize: 14 }}>Select or create a page</div>
+                }
+              </div>
             </div>
-          </div>
-        </>
-      ) : (
-        <Welcome onOpenFolder={openFolder} />
-      )}
+          </>
+        ) : (
+          <Welcome onOpenFolder={openFolder} />
+        )}
+      </div>
+      <StatusBar />
     </div>
   )
 }
