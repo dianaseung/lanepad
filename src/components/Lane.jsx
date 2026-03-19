@@ -49,7 +49,7 @@ export default function Lane({
             ref={setNodeRef}
             style={style}
             data-lane-id={lane.id}
-            className={`lane direction-${direction} ${lane.collapsed ? 'collapsed' : ''}`}
+            className={`lane direction-${direction} ${lane.collapsed ? 'collapsed' : ''} ${isLaneFocused ? 'lane-vim-focused' : ''}`}
         >
             <div className="lane-header">
                 <button
