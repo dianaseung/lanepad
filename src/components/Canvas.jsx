@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { usePage } from '../hooks/usePage.js'
 import { useVim } from '../hooks/useVim.js'
+import CodeEditor from './CodeEditor.jsx'
 import Lane from './Lane.jsx'
 import FindBar from './FindBar.jsx'
 import {
@@ -46,6 +47,11 @@ export default function Canvas({ folder, fileName, onSaveReady, onRefresh, onFil
 function CanvasInner({ folder, fileName, initialData, onSaveReady, onRefresh, onFileRenamed }) {
     const [dirty, setDirty] = useState(false)
     const [activeCard, setActiveCard] = useState(null)
+    const [focusMode, setFocusMode] = useState(false)
+    const [focusedCardData, setFocusedCardData] = useState(null)
+    const [focusedLaneData, setFocusedLaneData] = useState(null)
+    const [focusModeLaneId, setFocusModeLaneId] = useState(null)
+    const [focusModeCardId, setFocusModeCardId] = useState(null)
 
     // ── Find state ───────────────────────────────────────────────
     const [findOpen, setFindOpen] = useState(false)
@@ -58,7 +64,7 @@ function CanvasInner({ folder, fileName, initialData, onSaveReady, onRefresh, on
         addCard, updateCard, deleteCard, reorderCards, moveCard,
     } = usePage(initialData)
 
-    // ── Compute find matches ─────────────────────────────────────
+    // ── Find matches ─────────────────────────────────────────────
     const findMatches = []
     if (findQuery.trim()) {
         const q = findQuery.toLowerCase()
@@ -98,7 +104,6 @@ function CanvasInner({ folder, fileName, initialData, onSaveReady, onRefresh, on
         setFindMatchIndex(i => (i - 1 + findMatches.length) % findMatches.length)
     }
 
-    // Reset match index when query changes
     useEffect(() => {
         setFindMatchIndex(0)
     }, [findQuery])
@@ -127,6 +132,17 @@ function CanvasInner({ folder, fileName, initialData, onSaveReady, onRefresh, on
         onSave: () => save(),
         onNewPage: () => {},
         onOpenFind: openFind,
+        onToggleFocusMode: (val) => {
+            setFocusMode(val)
+            if (val) {
+                const card = getFocusedCard()
+                const lane = getFocusedLane()
+                setFocusedCardData(card)
+                setFocusedLaneData(lane)
+                setFocusModeLaneId(lane?.id ?? null)
+                setFocusModeCardId(card?.id ?? null)
+            }
+        },
     })
 
     // ── Dirty tracking ───────────────────────────────────────────
@@ -139,7 +155,7 @@ function CanvasInner({ folder, fileName, initialData, onSaveReady, onRefresh, on
         setDirty(true)
     }, [page])
 
-    // ── Save ────────────────────────────────────────────
+    // ── Save ─────────────────────────────────────────────────────
     async function save() {
         await window.lanepad.writePage(folder, fileName, page)
         setDirty(false)
@@ -149,6 +165,72 @@ function CanvasInner({ folder, fileName, initialData, onSaveReady, onRefresh, on
     useEffect(() => {
         if (onSaveReady) onSaveReady(save)
     }, [page])
+
+    // ── Card export helpers ───────────────────────────────────────
+    function exportCardJson(card) {
+        const exportData = {
+            title: card.title,
+            type: card.type,
+            content: card.content,
+            language: card.language,
+            color: card.color,
+        }
+        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `${card.title.toLowerCase().replace(/\s+/g, '-')}.json`
+        a.click()
+        URL.revokeObjectURL(url)
+    }
+
+    function exportLaneJson(lane) {
+        const exportData = {
+            name: lane.name,
+            cards: lane.cards.map(c => ({
+                title: c.title,
+                type: c.type,
+                content: c.content,
+                language: c.language,
+                color: c.color,
+            })),
+        }
+        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `${lane.name.toLowerCase().replace(/\s+/g, '-')}-lane.json`
+        a.click()
+        URL.revokeObjectURL(url)
+    }
+
+    function importCardsJson(laneId) {
+        const input = document.createElement('input')
+        input.type = 'file'
+        input.accept = '.json'
+        input.onchange = async (e) => {
+            const file = e.target.files[0]
+            if (!file) return
+            const text = await file.text()
+            try {
+                const data = JSON.parse(text)
+                const { nanoid } = await import('nanoid')
+                // Single card or lane export
+                if (data.cards) {
+                    // Lane export — import all cards
+                    for (const card of data.cards) {
+                        addCard(laneId, null, { ...card, id: nanoid() })
+                    }
+                } else if (data.title) {
+                    // Single card export
+                    addCard(laneId, null, { ...data, id: nanoid() })
+                }
+            } catch {
+                console.error('Invalid JSON file')
+            }
+        }
+        input.click()
+    }
 
     // ── Drag and drop ────────────────────────────────────────────
     const sensors = useSensors(
@@ -218,6 +300,65 @@ function CanvasInner({ folder, fileName, initialData, onSaveReady, onRefresh, on
 
     const laneIds = page.lanes.map(l => l.id)
     const focusedCard = getFocusedCard()
+    const focusedLane = getFocusedLane()
+
+    // ── Focus mode render ────────────────────────────────────────
+    if (focusMode && focusModeCardId) {
+        const liveLane = page.lanes.find(l => l.id === focusModeLaneId)
+        const liveCard = liveLane?.cards.find(c => c.id === focusModeCardId) ?? focusedCardData
+
+        return (
+            <div className="canvas-root canvas-focus-mode">
+                <div className="focus-toolbar">
+                    <button
+                        className="focus-exit-btn"
+                        onClick={() => setFocusMode(false)}
+                    >
+                        ← Exit Focus
+                    </button>
+                    <span className="focus-breadcrumb">
+                        {liveLane?.name ?? ''}
+                        {liveLane?.name ? ' › ' : ''}
+                        {liveCard.title}
+                    </span>
+                    <button
+                        className="focus-export-btn"
+                        onClick={() => exportCardJson(liveCard)}
+                    >
+                        Export Card JSON
+                    </button>
+                </div>
+                <div className="focus-card-body">
+                    {liveCard.type === 'code' && (
+                        <div className="focus-editor-wrap">
+                            <CodeEditor
+                                value={liveCard.content}
+                                language={liveCard.language}
+                                onChange={(val) => {
+                                    if (focusModeLaneId) {
+                                        updateCard(focusModeLaneId, focusModeCardId, { content: val })
+                                    }
+                                }}
+                                onEscape={() => document.activeElement?.blur()}
+                            />
+                        </div>
+                    )}
+                    {liveCard.type === 'note' && (
+                        <textarea
+                            className="focus-note-editor"
+                            value={liveCard.content}
+                            onChange={e => {
+                                if (focusModeLaneId) {
+                                    updateCard(focusModeLaneId, focusModeCardId, { content: e.target.value })
+                                }
+                            }}
+                            placeholder="Write a note..."
+                        />
+                    )}
+                </div>
+            </div>
+        )
+    }
 
     return (
         <div className={`canvas-root direction-${page.direction}`}>
@@ -228,7 +369,6 @@ function CanvasInner({ folder, fileName, initialData, onSaveReady, onRefresh, on
                     onChange={e => setTitle(e.target.value)}
                     placeholder="Page title"
                 />
-                {dirty && <span className="dirty-indicator">Unsaved changes</span>}
                 <div className="direction-toggle">
                     <button
                         className={page.direction === 'horizontal' ? 'active' : ''}
@@ -241,6 +381,7 @@ function CanvasInner({ folder, fileName, initialData, onSaveReady, onRefresh, on
                         title="Vertical lanes (columns)"
                     >⇅ Columns</button>
                 </div>
+                {dirty && <span className="dirty-indicator">Unsaved changes</span>}
             </div>
 
             {findOpen && (
@@ -289,6 +430,9 @@ function CanvasInner({ folder, fileName, initialData, onSaveReady, onRefresh, on
                                     const cardIndex = lane.cards.findIndex(c => c.id === cardId)
                                     setCursor({ laneIndex, cardIndex })
                                 }}
+                                onExportCard={exportCardJson}
+                                onExportLane={() => exportLaneJson(lane)}
+                                onImportCards={() => importCardsJson(lane.id)}
                             />
                         ))}
                         <button className="add-lane-btn" onClick={addLane}>

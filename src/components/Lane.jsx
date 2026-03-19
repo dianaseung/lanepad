@@ -13,6 +13,9 @@ export default function Lane({
     isLaneFocused,
     findMatchCardId,
     findMatchCardIds,
+    onExportCard,
+    onExportLane,
+    onImportCard,
 }) {
     const [editingName, setEditingName] = useState(false)
     const [nameValue, setNameValue] = useState(lane.name)
@@ -106,10 +109,17 @@ export default function Lane({
                                     <button onClick={() => handleAddCard('code')}>Code</button>
                                     <button onClick={() => handleAddCard('note')}>Note</button>
                                     <button onClick={() => handleAddCard('heading')}>Heading</button>
+                                    <hr style={{ border: 'none', borderTop: '1px solid #333', margin: '4px 0' }} />
+                                    <button onClick={() => { onImportCards(); setAddingType(false) }}>Import JSON</button>
                                 </div>
                             )}
                         </div>
                     )}
+                    <button
+                        className="lane-action-btn"
+                        onClick={onExportLane}
+                        title="Export lane as JSON"
+                    >↓</button>
                     <button
                         className="lane-action-btn danger"
                         onClick={onDeleteLane}
@@ -136,6 +146,7 @@ export default function Lane({
                                 onUpdate={(changes) => onUpdateCard(card.id, changes)}
                                 onDelete={() => onDeleteCard(card.id)}
                                 onClick={() => onCardClick(card.id)}
+                                onExportCard={() => onExportCard(card)}
                             />
                         ))}
                     </DroppableLaneBody>
@@ -157,7 +168,7 @@ function DroppableLaneBody({ laneId, children }) {
     )
 }
 
-function SortableCard({ card, onUpdate, onDelete, onClick, isFocused, isMatch, isCurrentMatch }) {
+function SortableCard({ card, onUpdate, onDelete, onClick, isFocused, isMatch, isCurrentMatch, onExportCard }) {
     const {
         attributes,
         listeners,
@@ -182,6 +193,7 @@ function SortableCard({ card, onUpdate, onDelete, onClick, isFocused, isMatch, i
                 isCurrentMatch={isCurrentMatch}
                 onUpdate={onUpdate}
                 onDelete={onDelete}
+                onExportCard={onExportCard}
                 dragHandleProps={{ ...attributes, ...listeners }}
             />
         </div>

@@ -11,6 +11,7 @@ export function VimProvider({ children }) {
         laneDeleteBlocked: false,
         yanked: null,
         page: null,
+        focusMode: false,
     })
 
     return (

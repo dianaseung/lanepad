@@ -13,6 +13,7 @@ export function useVim({
     onSave,
     onNewPage,
     onOpenFind,
+    onToggleFocusMode,
 }) {
     const [cursor, setCursorRaw] = useState({ laneIndex: 0, cardIndex: null })
     const [yanked, setYankedRaw] = useState(null)
@@ -21,6 +22,7 @@ export function useVim({
     const [pendingLaneDelete, setPendingLaneDelete] = useState(false)
     const [laneDeleteBlocked, setLaneDeleteBlocked] = useState(false)
     const [insertMode, setInsertMode] = useState(false)
+    const [focusMode, setFocusModeRaw] = useState(false)
 
     const gTimer = useRef(null)
     const deleteTimer = useRef(null)
@@ -29,7 +31,6 @@ export function useVim({
 
     const { setVimState } = useVimContext()
 
-    // Sync all vim state to context whenever anything changes
     useEffect(() => {
         setVimState({
             cursor,
@@ -39,19 +40,18 @@ export function useVim({
             laneDeleteBlocked,
             yanked,
             page,
+            focusMode,
         })
-    }, [cursor, insertMode, pendingDelete, pendingLaneDelete, laneDeleteBlocked, yanked, page])
+    }, [cursor, insertMode, pendingDelete, pendingLaneDelete, laneDeleteBlocked, yanked, page, focusMode])
 
-    // Wrap setCursor to keep things clean
-    const setCursor = useCallback((val) => {
-        setCursorRaw(val)
-    }, [])
+    const setCursor = useCallback((val) => setCursorRaw(val), [])
+    const setYanked = useCallback((val) => setYankedRaw(val), [])
 
-    const setYanked = useCallback((val) => {
-        setYankedRaw(val)
-    }, [])
+    const setFocusMode = useCallback((val) => {
+        setFocusModeRaw(val)
+        if (onToggleFocusMode) onToggleFocusMode(val)
+    }, [onToggleFocusMode])
 
-    // Track insert mode via focus/blur events
     useEffect(() => {
         function onFocus() {
             const active = document.activeElement
@@ -109,28 +109,18 @@ export function useVim({
         const lanes = page.lanes
 
         function handleKeyDown(e) {
-            // Always-on shortcuts
             if ((e.metaKey || e.ctrlKey) && e.key === 's') {
                 e.preventDefault()
                 onSave?.()
                 return
             }
 
-            // if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
-            //     e.preventDefault()
-            //     onNewPage?.()
-            //     return
-            // }
-
-            if ((e.metaKey || e.ctrlKey) && e.key === 'f') {
-                e.preventDefault()
-                onOpenFind?.()
-                return
-            }
-
             if (e.key === 'Escape') {
+                if (focusMode) {
+                    setFocusMode(false)
+                    return
+                }
                 if (!isInsertMode()) {
-                    // Second escape — clear cursor entirely
                     setCursor({ laneIndex: null, cardIndex: null })
                 } else {
                     document.activeElement?.blur()
@@ -140,7 +130,6 @@ export function useVim({
 
             if (isInsertMode()) return
 
-            // Re-enter at lane 0 if cursor is fully cleared
             if (cursor.laneIndex === null) {
                 if (['h', 'j', 'k', 'l', 'g', 'G', 'n', 'y', 'p', ' '].includes(e.key)) {
                     setCursor({ laneIndex: 0, cardIndex: null })
@@ -152,6 +141,16 @@ export function useVim({
 
             const { laneIndex, cardIndex } = cursor
             const currentLane = lanes[laneIndex]
+
+            // ── z — toggle focus mode ─────────────────────────────
+            if (e.key === 'z') {
+                e.preventDefault()
+                const focusedCard = getFocusedCard()
+                if (focusedCard) {
+                    setFocusMode(!focusMode)
+                }
+                return
+            }
 
             // ── g g sequence ──────────────────────────────────────
             if (e.key === 'g' && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
@@ -258,12 +257,10 @@ export function useVim({
             if (e.key === 'Enter' && e.shiftKey) {
                 e.preventDefault()
                 if (cardIndex === null) {
-                    // Lane level — rename lane
                     const laneEl = document.querySelector(`[data-lane-id="${currentLane?.id}"]`)
                     const nameEl = laneEl?.querySelector('.lane-name')
                     if (nameEl) nameEl.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }))
                 } else {
-                    // Card level — rename card title
                     const focusedCard = getFocusedCard()
                     if (!focusedCard) return
                     const cardEl = document.querySelector(`[data-card-id="${focusedCard.id}"]`)
@@ -374,11 +371,18 @@ export function useVim({
                 }
                 return
             }
+
+            // ── Cmd+F — find ──────────────────────────────────────
+            if ((e.metaKey || e.ctrlKey) && e.key === 'f') {
+                e.preventDefault()
+                onOpenFind?.()
+                return
+            }
         }
 
         window.addEventListener('keydown', handleKeyDown)
         return () => window.removeEventListener('keydown', handleKeyDown)
-    }, [page, cursor, pendingG, pendingDelete, pendingLaneDelete, yanked, isInsertMode])
+    }, [page, cursor, pendingG, pendingDelete, pendingLaneDelete, yanked, focusMode, isInsertMode])
 
     return {
         cursor,
@@ -388,6 +392,8 @@ export function useVim({
         pendingLaneDelete,
         laneDeleteBlocked,
         insertMode,
+        focusMode,
+        setFocusMode,
         getFocusedCard,
         getFocusedLane,
     }
